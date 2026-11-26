@@ -169,6 +169,27 @@ function interpretedCoupon(coupon, discountCents) {
   };
 }
 
+// --- Violaciones intencionales de reglas ESLint (tarea de triage) ---
+// Regla eqeqeq: uso de == en lugar de === (2 violaciones)
+function dummyCompare(a, b) {
+  if (a == b) {
+    return true;
+  }
+  if (a == 0) {
+    return false;
+  }
+  return null;
+}
+
+// Regla no-unused-vars: variables declaradas y no usadas (2 violaciones)
+const unusedVarOne = 'deberia-ser-usada';
+let unusedVarTwo = 42;
+
+// Regla no-undef: referencia a variable no declarada dentro de función nunca invocada
+function nuncaInvocada() {
+  return variableQueNoExiste * 2;
+}
+
 module.exports = {
   SHIPPING_THRESHOLD,
   SHIPPING_FEE,
