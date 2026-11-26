@@ -1,33 +1,56 @@
-# API de comercio electrónico — README de instalación y pruebas automatizadas
+# API de comercio electrónico — README de instalación, pruebas, CI y evidencias
 
 **Universidad Tecnológica de Panamá · Asignación N.º 1: Suite automatizada de pruebas de software**
 
-Este único README integra las instrucciones y reglas funcionales originales de la API con la guía de reproducibilidad de la suite de pruebas desarrollada para la asignación. Las reglas originales se conservan: una prueba que las incumpla representa un hallazgo, no una razón para cambiar la especificación.
+Este único README integra las instrucciones y reglas funcionales originales de la API con la guía de reproducibilidad de la suite de pruebas, el pipeline de integración continua, el análisis estático, las corridas de mutación y el índice de evidencias. Las reglas originales se conservan: una prueba que las incumpla representa un hallazgo, no una razón para cambiar la especificación.
 
-## Entorno utilizado en la ejecución documentada
+## Estado de la entrega
 
-| Componente | Versión / configuración comprobada |
+| Elemento | Valor |
 | --- | --- |
-| Node.js | `v22.23.4` (serie 22 LTS) |
-| npm | `10.9.9` |
-| Jest | Declarado en `package.json` como `^29.7.0` |
-| Supertest | Declarado en `package.json` como `^7.0.0` |
-| Persistencia | Sequelize + SQLite (`sqlite3`) |
+| Repositorio | https://github.com/edjo16/ecommerce-api |
+| Rama de trabajo y entrega | `task3-lint-triage-fuzz` |
+| Pull request | `master ← task3-lint-triage-fuzz`, **sin fusionar** (enlace: https://github.com/edjo16/ecommerce-api/pull/new/task3-lint-triage-fuzz) |
+| Commit de código verificado en CI | `1e928eb` |
+| Corrida verde del commit de código | https://github.com/edjo16/ecommerce-api/actions/runs/45745868188 (ESLint ✅, Jest ✅) |
+| Índice de evidencias | [`reports/INDICE-EVIDENCIAS.md`](reports/INDICE-EVIDENCIAS.md) |
+| Informe final en PDF | [`reports/informe-final-calidad.pdf`](reports/informe-final-calidad.pdf) |
+
+## Entorno utilizado
+
+| Componente | Versión / configuración |
+| --- | --- |
+| Node.js (local) | `v22.12.0` (Windows) |
+| Node.js (CI) | `22` con `actions/setup-node@v4`, runner `ubuntu-latest` |
+| npm | `10.x` |
+| Jest | `^29.7.0` |
+| Supertest | `^7.0.0` |
+| Stryker | `@stryker-mutator/core` y `jest-runner` `^8.6.0` |
+| ESLint | `^9.16.0` con `@eslint/js` (`eslint:recommended`) |
+| Persistencia | Sequelize `^6.37.5` + SQLite (`sqlite3`) |
 | Archivo de bloqueo | `package-lock.json` presente |
 
-Las versiones de Node.js y npm corresponden al entorno utilizado para obtener las evidencias, no a una prueba de compatibilidad universal.
+Las versiones corresponden al entorno utilizado para obtener las evidencias, no a una prueba de compatibilidad universal.
 
 ## Instalación
 
-Deben tener `npm` instalado en su máquina. Para eso, sigan las indicaciones en la siguiente página: [Downloading and installing Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+Deben tener `npm` instalado. Para eso, sigan las indicaciones en la siguiente página: [Downloading and installing Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 
-Una vez instalado `npm`, deben ejecutar los siguientes comandos en la consola:
-
-1. Instalar las dependencias:
+1. Instalar las dependencias (copia limpia, recomendado porque usa el archivo de bloqueo):
 
 ```bash
-npm install
+npm ci
 ```
+
+En PowerShell (Windows), usar `npm.cmd` para evitar bloqueos de `npm.ps1`:
+
+```powershell
+npm.cmd ci
+```
+
+Si prefieren una instalación local sin archivo de bloqueo, `npm install` también funciona.
+
+**SQLite:** la dependencia `sqlite3` contiene componentes nativos. Si falla la instalación, comprobar primero la versión de Node.js y la salida del error.
 
 2. Levantar el servidor:
 
@@ -35,38 +58,17 @@ npm install
 npm start
 ```
 
-Este comando creará la base de datos en SQLite (archivo `db.sqlite`) y todas las tablas necesarias.
-
-### Instalación reproducible de la entrega académica (PowerShell)
-
-Para una **copia limpia**, abrir la terminal en la carpeta que contiene `package.json` y `package-lock.json` y ejecutar:
-
-```powershell
-node -v
-npm.cmd -v
-npm.cmd ci
-```
-
-`npm ci` usa el archivo de bloqueo y es la opción recomendada para reproducir las dependencias de la entrega; el `npm install` original sigue siendo una alternativa para trabajo local. En PowerShell, `npm.cmd` evita posibles bloqueos de ejecución de `npm.ps1`. No es necesario incluir `node_modules` en el ZIP.
-
-**SQLite:** la dependencia `sqlite3` contiene componentes nativos. Si falla la instalación, comprobar primero la versión de Node.js y la salida del error; algunos equipos pueden requerir herramientas de compilación compatibles o un binario precompilado. No se ha verificado que hayan sido necesarias instalaciones adicionales en el equipo utilizado para el informe.
-
+Este comando crea la base de datos en SQLite (`db.sqlite`) y todas las tablas necesarias.
 
 ## Levantar el servidor
 
-Para levantar el servidor, deben ejecutar el siguiente comando:
-
-```bash
-npm start
-```
-
-Esto levantará el servidor en el puerto 3000. Para probar las rutas, pueden usar el siguiente comando:
+El servidor escucha en el puerto 3000:
 
 ```bash
 curl http://localhost:3000/products
 ```
 
-Si no tienen `curl` instalado, pueden utilizar otras herramientas como [Postman](https://www.postman.com/) o [Insomnia](https://insomnia.rest/).
+Si no tienen `curl`, pueden usar [Postman](https://www.postman.com/) o [Insomnia](https://insomnia.rest/).
 
 ## Rutas canónicas
 
@@ -177,22 +179,61 @@ El JSON es `{ "error": "<texto>" }`.
 
 ## Pruebas
 
-Para ejecutar las pruebas, deben ejecutar el siguiente comando:
+### Comandos
 
-```bash
-npm test
+Desde la raíz del proyecto:
+
+```powershell
+$env:NODE_ENV = 'test'
+npm.cmd test
 ```
 
-Si quieren ver el coverage de las pruebas, pueden ejecutar el siguiente comando:
+En Linux o macOS:
 
 ```bash
-npm run test:coverage
+NODE_ENV=test npm test
 ```
 
+**Advertencia:** `NODE_ENV=test` es obligatorio. Las pruebas de rutas llaman a `sequelize.sync({ force: true })`; sin esa variable, Sequelize usa `./db.sqlite` y se borrarían sus tablas. Con `NODE_ENV=test`, la base es SQLite **en memoria** (`models/index.js`). El pipeline de CI define la misma variable en el job `test`.
+
+Para ejecutar en serie, como en la evidencia académica:
+
+```powershell
+$env:NODE_ENV = 'test'
+npm.cmd test -- --runInBand
+```
+
+### Resultado actual
+
+Último resultado en el commit de código (`1e928eb`):
+
+- **9 suites** y **125 pruebas**, todas en PASS.
+- De esas 125, **2 son `it.failing`** (CP-05 y CP-06). Documentan los defectos H-01 y H-02 y pasan porque el defecto sigue presente. Si el servicio se corrige, la prueba fallará y debe cambiarse a `it`.
+
+Hallazgos de la evidencia académica:
+
+| Hallazgo | Caso | Entrada | Resultado observado bajo mocks | Resultado esperado | Estado en la suite |
+| --- | --- | --- | --- | --- | --- |
+| H-01 | CP-05 | Cantidad `0` | La promesa se resolvió | Debía rechazarse | `it.failing` (documenta el defecto) |
+| H-02 | CP-06 | Cantidad `-1` | La promesa se resolvió | Debía rechazarse | `it.failing` (documenta el defecto) |
+
+Los hallazgos provienen de pruebas unitarias con mocks; no prueban una inserción real de esas cantidades en SQLite.
 
 ### Alcance de la suite automatizada
 
-La entrega académica documenta **22 casos CP-01 a CP-22** para servicios de carrito y productos, incluyendo clases válidas, inválidas y límites. Se utilizan **Jest** para las aserciones y **Supertest** para algunas pruebas de rutas HTTP. El número total de pruebas que Jest informa puede ser mayor debido a pruebas preexistentes con nombres diferentes de `CP-*`.
+La entrega académica documenta **22 casos CP-01 a CP-22** para servicios de carrito y productos, incluyendo clases válidas, inválidas y límites. Se utilizan **Jest** para las aserciones y **Supertest** para algunas pruebas de rutas HTTP.
+
+| Archivo | Pruebas | Propósito |
+| --- | ---: | --- |
+| `tests/services/cartService.test.js` | en el resto | CP-02 a CP-09, CP-19 a CP-22 (carrito; CP-05 y CP-06 como `it.failing`) |
+| `tests/services/productService.test.js` | en el resto | CP-10 a CP-18 (productos y categorías) |
+| `tests/routes/*.test.js` | en el resto | Rutas de carrito, productos y categorías con Supertest |
+| `tests/services/pricing.test.js` | 38 | Suite propia de `services/pricing.js` (mutación) |
+| `tests/services/pricing.fuzz.test.js` | 4 | Prueba de propiedades (fuzz) de `priceCheckout` |
+| `tests/ai-generated/pricing.ai-original.test.js` | 15 | Pruebas generadas por IA sin editar (comparación) |
+| `tests/ai-generated/pricing.ai-reviewed.test.js` | 34 | Pruebas generadas por IA tras revisión (comparación) |
+
+Las pruebas de `tests/ai-generated/` se conservan separadas porque son el insumo de la comparación con IA. Jest las ejecuta junto con el resto.
 
 ### Separación entre servidor real y aplicación aislada de Supertest
 
@@ -212,62 +253,106 @@ En `models/index.js`, cuando `NODE_ENV=test`, Sequelize utiliza SQLite **en memo
 
 **Advertencia:** `force: true` recrea las tablas de la base de datos conectada. Antes de ejecutar pruebas hay que establecer `NODE_ENV=test`; evitar ejecutarlas contra una base persistente de trabajo.
 
-### Ejecutar Jest en PowerShell (Windows)
-
-Desde la raíz del proyecto:
+## Cobertura
 
 ```powershell
 $env:NODE_ENV = 'test'
-npm.cmd test -- --runInBand
+npm.cmd run test:coverage
 ```
 
-Esto ejecuta el script `test` de `package.json` (`jest`). `--runInBand` evita correr los archivos de prueba en paralelo. En una consola distinta de PowerShell, ajustar la forma de definir `NODE_ENV`.
+El script ejecuta `jest --coverage --detectOpenHandles --forceExit`. Salida registrada: `reports/coverage-run.txt`.
 
-**Resultado documentado en la evidencia académica:** 5 suites (4 PASS, 1 FAIL) y 34 pruebas (32 PASS, 2 FAIL). Los dos fallos funcionales identificados corresponden a:
+| Archivo | Sentencias | Ramas | Funciones | Líneas | Líneas sin cubrir |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `services/pricing.js` | 100 % | **100 %** | 100 % | 100 % | — |
+| `services/cartService.js` | 84.78 % | **83.33 %** | 83.33 % | 84.78 % | 93–103 |
+| `services/productService.js` | 84.21 % | **84.61 %** | 62.50 % | 84.21 % | 7–11, 37, 87, 92, 95 |
+| Proyecto completo (`All files`) | 69.49 % | 68.24 % | 53.84 % | 69.05 % | — |
 
-| Hallazgo | Caso | Entrada | Resultado observado bajo mocks | Resultado esperado |
-| --- | --- | --- | --- | --- |
-| H-01 | CP-05 | Cantidad `0` | La promesa se resolvió | Debía rechazarse |
-| H-02 | CP-06 | Cantidad `-1` | La promesa se resolvió | Debía rechazarse |
+Los dos servicios asignados superan el mínimo académico de **70 % de ramas por servicio**. El porcentaje global incluye módulos de rutas que no se evaluaron con ese mínimo.
 
-Se mantuvieron las aserciones para documentar los defectos. Por esa razón Jest puede devolver un código de salida distinto de cero: esto **no implica por sí mismo** que la instalación sea incorrecta. Los hallazgos provienen de pruebas unitarias con mocks; no prueban una inserción real de esas cantidades en SQLite.
+Cobertura de ramas de `cartService.js` y `productService.js` en la entrega académica: 83.33 % y 84.61 %. Las líneas 93–103 de `cartService.js` (actualizar y eliminar ítems) siguen sin cubrir y se documentan como trabajo futuro.
 
-### Ejecutar y revisar cobertura de ramas
-
-```powershell
-$env:NODE_ENV = 'test'
-npm.cmd run test:coverage -- --runInBand
-```
-
-El script de `package.json` ejecuta `jest --coverage --detectOpenHandles --forceExit`. La evidencia previa indica:
-
-| Archivo | Cobertura de ramas |
-| --- | ---: |
-| `services/cartService.js` | **83.33 %** |
-| `services/productService.js` | **84.61 %** |
-| Proyecto completo (`All files`) | 26.35 % |
-
-Ambos servicios asignados superan el mínimo académico de **70 % de ramas por servicio**. El porcentaje global incluye otros módulos no evaluados dentro de ese mínimo. Los porcentajes se deben cotejar con el informe generado en la versión final del proyecto. Adjuntar el reporte de Jest/cobertura como evidencia independiente del informe académico de cuatro páginas, conforme a las indicaciones de la asignación.
-
-### Evidencia, limitaciones y verificación final
-
-Los hallazgos CP-05 y CP-06 muestran que una cobertura alta no garantiza la corrección funcional. En la evidencia de cobertura, las líneas 93–103 de `services/cartService.js` quedaron sin cubrir; se documentó como trabajo futuro verificar la eliminación exitosa de un ítem y el rechazo de un identificador inexistente. Estas pruebas adicionales **no** se presentan como ejecutadas.
-
-### Verificación de reproducibilidad
-
-Se verificó la instalación y ejecución de la suite desde una copia limpia del proyecto, utilizando Node.js v22.23.4 y npm 10.9.9.
-
-La instalación mediante `npm.cmd ci` fue satisfactoria. Jest ejecutó **34 pruebas: 32 PASS y 2 FAIL**, correspondientes a los hallazgos H-01 y H-02.
-
-La cobertura de ramas alcanzó **83.33 % en `cartService.js` y 84.61 % en `productService.js`**, superando el mínimo requerido del 70 % por servicio.
-**Contenido sugerido del ZIP de entrega:** carpetas `models/`, `routes/`, `services/`, `tests/`, y demás código fuente necesario; `package.json`, `package-lock.json`, un único `README.md`, informe académico y reporte auténtico de cobertura. No incluir `node_modules`, credenciales, archivos `.env` con secretos ni copias duplicadas del README.
-
-## Ejecutar mutation testing con stryker
-
-Para ejecutar mutation testing con stryker, deben ejecutar el siguiente comando:
+## Lint
 
 ```bash
-npx stryker run
+npm run lint
 ```
 
-Eso generará un reporte en el archivo `reports/mutation.html` que pueden abrir con cualquier navegador.
+El script ejecuta `npx eslint models services routes` con la configuración `eslint.config.mjs` (`@eslint/js` recommended). La regla `eqeqeq` no forma parte de `eslint:recommended`.
+
+- Salida limpia del commit final: `reports/lint-clean.txt` (exit code 0).
+- Corrida en rojo con 5 violaciones de 2 reglas (`no-unused-vars` ×4 y `no-undef` ×1): `reports/lint-red.txt`, y el triage en `reports/triage-lint.md`.
+
+## Mutación con Stryker
+
+La mutación se aplica a **un único servicio**: `services/pricing.js`. Se usan tres configuraciones, una por corrida comparable. Cada una apunta a su propio archivo de Jest mediante `jest.configFile`, así que no hay que mover archivos entre corridas.
+
+| Corrida | Configuración | Archivo de Jest | Pruebas | Score | Muertos | Sobrevivientes | Sin cobertura | Evidencia |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Baseline (antes de la mejora) | — (ver nota) | `tests/services/pricing.test.js` antes de la mejora | 34 | **85.51 %** | 176 | 30 | 0 | `reports/mutation-baseline.txt` |
+| Suite propia (después) | `stryker.pricing.config.json` | `jest.stryker.suite-propia.config.js` | 38 | **90.34 %** | 186 | 20 | 0 | `reports/stryker/suite-propia/` |
+| Modelo tal cual (IA) | `stryker.ia-original.config.json` | `jest.stryker.ia-original.config.js` | 15 | **69.57 %** | 143 | 53 | 10 | `reports/stryker/ia-original/` |
+| Modelo revisado (IA + analista) | `stryker.ia-revisada.config.json` | `jest.stryker.ia-revisada.config.js` | 34 | **91.79 %** | 189 | 17 | 0 | `reports/stryker/ia-revisada/` |
+
+Las tres corridas comparables de la Tarea 2 son: suite propia, modelo tal cual y modelo revisado. Las tres se reprodujeron con los comandos siguientes y dieron exactamente los mismos números.
+
+### Comandos
+
+```powershell
+npx stryker run stryker.pricing.config.json
+npx stryker run stryker.ia-original.config.json
+npx stryker run stryker.ia-revisada.config.json
+```
+
+Cada comando escribe su reporte HTML en `reports/stryker/<corrida>/mutation.html`. Para guardar el registro de texto, redirigir la salida a `log.txt` en esa misma carpeta.
+
+`npx stryker run` sin argumentos usa `stryker.config.json`, la configuración original del proyecto, que muta todos los servicios. No se usó para las métricas.
+
+### Notas de interpretación
+
+- **Baseline:** se obtuvo con la suite propia antes de añadir las cuatro pruebas de la mejora, por lo que el archivo de pruebas de esa versión no está versionado. La evidencia es el texto `reports/mutation-baseline.txt`. Para reproducirla, se necesita esa versión de la suite.
+- **Mutantes equivalentes:** algunos sobrevivientes son equivalentes (no cambian el comportamiento observable). Por ejemplo, el guard `typeof x !== 'number'` es redundante con `Number.isFinite(x)`. No se pueden matar sin cambiar el código. La clasificación completa está en `reports/sobrevivientes-baseline.md`.
+- **Pendiente:** un mutante de la línea 159 (`if (true)` para cupones `fixed`) sigue vivo en la suite propia. Se corrige con la aserción `expect(result.coupon.type).toBe('fixed')`. No se aplicó para no alterar la medición registrada.
+
+## Integración continua (GitHub Actions)
+
+El pipeline está en `.github/workflows/ci.yml` y se ejecuta en **cada push y cada pull request**.
+
+| Job | Qué ejecuta | Variables |
+| --- | --- | --- |
+| `lint` (ESLint) | `npm ci` y `npm run lint` | — |
+| `test` (Jest) | `npm ci` y `npm test` | `NODE_ENV=test` |
+
+Ambos jobs usan Node.js 22 y `ubuntu-latest`. El job falla si falla el comando correspondiente, así que una suite roja o un lint rojo marca el run como fallido.
+
+### Verificación del pipeline
+
+| Corrida | Rama | Commit | ESLint | Jest | Enlace |
+| --- | --- | --- | --- | --- | --- |
+| Commit de código (verde) | `task3-lint-triage-fuzz` | `1e928eb` | ✅ pasa | ✅ pasa | https://github.com/edjo16/ecommerce-api/actions/runs/45745868188 |
+| Lint en rojo (demostración) | `ci/demo-lint-rojo` | `685a086` | ❌ falla | ✅ pasa | https://github.com/edjo16/ecommerce-api/actions/runs/45745435188 |
+| Suite en rojo (demostración) | `ci/demo-test-rojo` | `69bdc8b` | ✅ pasa | ❌ falla | https://github.com/edjo16/ecommerce-api/actions/runs/45745455864 |
+
+Las dos ramas `ci/demo-*` existen solo para demostrar que el job correspondiente falla. Son ramas de evidencia; pueden eliminarse cuando se cierre la entrega.
+
+Una corrida fallida por la suite no es un error del pipeline: es el comportamiento esperado. Por eso los defectos H-01 y H-02 se marcaron con `it.failing` y no con `skip` ni eliminados: el pipeline sigue verde mientras el defecto exista, y deja de estarlo cuando se corrige el servicio.
+
+## Evidencias
+
+- Índice con cada evidencia, ruta, commit y enlace: [`reports/INDICE-EVIDENCIAS.md`](reports/INDICE-EVIDENCIAS.md).
+- Documento de entregables y riesgo residual: [`reports/entregables-calidad.md`](reports/entregables-calidad.md).
+- Informe final en PDF: [`reports/informe-final-calidad.pdf`](reports/informe-final-calidad.pdf).
+
+## Limitaciones
+
+- El pull request sigue abierto y sin fusionar; no se integró en `master`.
+- El riesgo de sobreventa por lectura concurrente del inventario (documentado en el README, sección Cobro) no se reprodujo con una prueba concurrente.
+- Los defectos H-01 y H-02 no se corrigieron, porque la especificación se conserva como hallazgo.
+- Las ramas `ci/demo-*` son artificiales; no forman parte del código entregable.
+
+## Verificación de reproducibilidad
+
+Se verificó la instalación y ejecución de la suite desde una copia limpia del proyecto (`npm ci`), con Node.js v22 y npm 10. En la última ejecución local (`NODE_ENV=test npm test`): **9 suites, 125 pruebas, 125 PASS**. Las dos pruebas `it.failing` cuentan como PASS porque confirman el defecto. La cobertura de ramas de los servicios asignados supera el 70 %. Los resultados de CI están en la tabla de la sección anterior.
+
+**Contenido sugerido del ZIP de entrega:** carpetas `models/`, `routes/`, `services/`, `tests/`, `.github/`, `reports/` y demás código fuente necesario; `package.json`, `package-lock.json`, un único `README.md` y los reportes. No incluir `node_modules`, credenciales, archivos `.env` con secretos ni copias duplicadas del README.

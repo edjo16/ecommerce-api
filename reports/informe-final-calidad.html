@@ -1,0 +1,2088 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Informe final de calidad</title><style>
+@page { size: A4; margin: 16mm 15mm; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; line-height: 1.45; color: #1f2328; }
+h1 { font-size: 18pt; color: #0b3d6b; border-bottom: 2px solid #0b3d6b; padding-bottom: 4px; }
+h2 { font-size: 13.5pt; color: #0b3d6b; margin-top: 16px; }
+h3 { font-size: 11.5pt; color: #24292f; margin-top: 12px; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 8.8pt; }
+th, td { border: 1px solid #d0d7de; padding: 4px 6px; vertical-align: top; text-align: left; }
+th { background: #eef4fa; }
+code { font-family: Consolas, 'Courier New', monospace; font-size: 8.8pt; background: #f3f4f6; padding: 0 3px; border-radius: 3px; }
+pre { background: #f6f8fa; border: 1px solid #d0d7de; padding: 8px; overflow-wrap: anywhere; white-space: pre-wrap; font-size: 8.2pt; }
+pre code { background: none; padding: 0; }
+a { color: #0b5cad; text-decoration: none; word-break: break-all; }
+section.pagina { page-break-before: always; }
+.portada { text-align: center; padding-top: 90px; }
+.portada h1 { border: none; font-size: 26pt; }
+.portada p { font-size: 11pt; }
+.meta { margin: 30px auto; width: 80%; text-align: left; }
+.meta td { border: none; border-bottom: 1px solid #d0d7de; font-size: 9.5pt; }
+ul.indice li { margin: 4px 0; }
+</style></head><body><section class="portada"><h1>Informe final de calidad</h1><p><strong>API de comercio electrónico (ecommerce-app)</strong></p><p>Universidad Tecnológica de Panamá · Asignación N.º 1: Suite automatizada de pruebas de software</p><table class="meta"><tr><td>Repositorio</td><td>https://github.com/edjo16/ecommerce-api</td></tr><tr><td>Rama de entrega</td><td>task3-lint-triage-fuzz (PR sin fusionar)</td></tr><tr><td>Commit de código verificado</td><td>1e928eb</td></tr><tr><td>Corrida verde de CI</td><td>https://github.com/edjo16/ecommerce-api/actions/runs/45745868188</td></tr><tr><td>Fecha del informe</td><td>25 de noviembre de 2026</td></tr></table></section><section class="pagina"><h1>Contenido</h1><ul class="indice"><li>1. README: instalación, pruebas, cobertura, lint, Stryker y CI</li><li>2. Entregables de calidad y riesgo residual</li><li>3. Índice de evidencias</li><li>4. Clasificación de sobrevivientes (Stryker)</li><li>5. Memo de comparación con IA y registro de IA</li><li>6. Triage de hallazgos de lint</li><li>Anexo A. Prompt enviado al modelo de IA</li></ul></section><section class="pagina" id="README.md"><h1>API de comercio electrónico — README de instalación, pruebas, CI y evidencias</h1>
+<p><strong>Universidad Tecnológica de Panamá · Asignación N.º 1: Suite automatizada de pruebas de software</strong></p>
+<p>Este único README integra las instrucciones y reglas funcionales originales de la API con la guía de reproducibilidad de la suite de pruebas, el pipeline de integración continua, el análisis estático, las corridas de mutación y el índice de evidencias. Las reglas originales se conservan: una prueba que las incumpla representa un hallazgo, no una razón para cambiar la especificación.</p>
+<h2>Estado de la entrega</h2>
+<table>
+<thead>
+<tr>
+<th>Elemento</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repositorio</td>
+<td>https://github.com/edjo16/ecommerce-api</td>
+</tr>
+<tr>
+<td>Rama de trabajo y entrega</td>
+<td><code>task3-lint-triage-fuzz</code></td>
+</tr>
+<tr>
+<td>Pull request</td>
+<td><code>master ← task3-lint-triage-fuzz</code>, <strong>sin fusionar</strong> (enlace: https://github.com/edjo16/ecommerce-api/pull/new/task3-lint-triage-fuzz)</td>
+</tr>
+<tr>
+<td>Commit de código verificado en CI</td>
+<td><code>1e928eb</code></td>
+</tr>
+<tr>
+<td>Corrida verde del commit de código</td>
+<td>https://github.com/edjo16/ecommerce-api/actions/runs/45745868188 (ESLint ✅, Jest ✅)</td>
+</tr>
+<tr>
+<td>Índice de evidencias</td>
+<td><a href="reports/INDICE-EVIDENCIAS.md"><code>reports/INDICE-EVIDENCIAS.md</code></a></td>
+</tr>
+<tr>
+<td>Informe final en PDF</td>
+<td><a href="reports/informe-final-calidad.pdf"><code>reports/informe-final-calidad.pdf</code></a></td>
+</tr>
+</tbody>
+</table>
+<h2>Entorno utilizado</h2>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Versión / configuración</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node.js (local)</td>
+<td><code>v22.12.0</code> (Windows)</td>
+</tr>
+<tr>
+<td>Node.js (CI)</td>
+<td><code>22</code> con <code>actions/setup-node@v4</code>, runner <code>ubuntu-latest</code></td>
+</tr>
+<tr>
+<td>npm</td>
+<td><code>10.x</code></td>
+</tr>
+<tr>
+<td>Jest</td>
+<td><code>^29.7.0</code></td>
+</tr>
+<tr>
+<td>Supertest</td>
+<td><code>^7.0.0</code></td>
+</tr>
+<tr>
+<td>Stryker</td>
+<td><code>@stryker-mutator/core</code> y <code>jest-runner</code> <code>^8.6.0</code></td>
+</tr>
+<tr>
+<td>ESLint</td>
+<td><code>^9.16.0</code> con <code>@eslint/js</code> (<code>eslint:recommended</code>)</td>
+</tr>
+<tr>
+<td>Persistencia</td>
+<td>Sequelize <code>^6.37.5</code> + SQLite (<code>sqlite3</code>)</td>
+</tr>
+<tr>
+<td>Archivo de bloqueo</td>
+<td><code>package-lock.json</code> presente</td>
+</tr>
+</tbody>
+</table>
+<p>Las versiones corresponden al entorno utilizado para obtener las evidencias, no a una prueba de compatibilidad universal.</p>
+<h2>Instalación</h2>
+<p>Deben tener <code>npm</code> instalado. Para eso, sigan las indicaciones en la siguiente página: <a href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm">Downloading and installing Node.js and npm</a></p>
+<ol>
+<li>Instalar las dependencias (copia limpia, recomendado porque usa el archivo de bloqueo):</li>
+</ol>
+<pre><code class="language-bash">npm ci
+</code></pre>
+<p>En PowerShell (Windows), usar <code>npm.cmd</code> para evitar bloqueos de <code>npm.ps1</code>:</p>
+<pre><code class="language-powershell">npm.cmd ci
+</code></pre>
+<p>Si prefieren una instalación local sin archivo de bloqueo, <code>npm install</code> también funciona.</p>
+<p><strong>SQLite:</strong> la dependencia <code>sqlite3</code> contiene componentes nativos. Si falla la instalación, comprobar primero la versión de Node.js y la salida del error.</p>
+<ol start="2">
+<li>Levantar el servidor:</li>
+</ol>
+<pre><code class="language-bash">npm start
+</code></pre>
+<p>Este comando crea la base de datos en SQLite (<code>db.sqlite</code>) y todas las tablas necesarias.</p>
+<h2>Levantar el servidor</h2>
+<p>El servidor escucha en el puerto 3000:</p>
+<pre><code class="language-bash">curl http://localhost:3000/products
+</code></pre>
+<p>Si no tienen <code>curl</code>, pueden usar <a href="https://www.postman.com/">Postman</a> o <a href="https://insomnia.rest/">Insomnia</a>.</p>
+<h2>Rutas canónicas</h2>
+<p>El servidor monta los routers sin el prefijo <code>/api/v1</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Rutas principales</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Productos</td>
+<td><code>GET /products</code>, <code>POST /products</code>, <code>GET /products/category/:categoryId</code></td>
+</tr>
+<tr>
+<td>Categorías</td>
+<td><code>GET /categories</code>, <code>POST /categories</code></td>
+</tr>
+<tr>
+<td>Carrito</td>
+<td><code>POST /cart/:userId</code>, <code>POST /cart/:cartId/items</code>, <code>GET /cart/:cartId/items</code>, <code>POST /cart/:cartId/checkout</code>, <code>GET /cart/:cartId/order</code></td>
+</tr>
+</tbody>
+</table>
+<p>Algunas pruebas construyen una aplicación Express aislada y montan el mismo router bajo <code>/api/products</code> o <code>/api/carts</code>. Ese prefijo pertenece al arnés de la prueba; no es la URL del servidor levantado con <code>npm start</code>.</p>
+<h2>Reglas</h2>
+<p>Estas reglas son la especificación del carrito y del cobro. Si una respuesta del servidor no las cumple, esa diferencia es un hallazgo: no se reescribe la regla para que coincida con el código.</p>
+<h3>Alta de un ítem</h3>
+<p><code>CartService.addItemToCart(cartId, productId, quantity)</code> agrega la cantidad solo cuando el producto existe y <code>quantity</code> es un entero mayor que cero que no supera el inventario. Si el producto ya está en el carrito, la cantidad nueva es la suma, y esa suma tampoco puede superar el inventario.</p>
+<h3>Ítem y carrito de la URL</h3>
+<p>El ítem que se actualiza con <code>PUT /cart/:cartId/items/:itemId</code>, o se elimina con <code>DELETE /cart/:cartId/items/:itemId</code>, pertenece al carrito indicado en la URL.</p>
+<h3>Total al consultar el carrito</h3>
+<p><code>GET /cart/:cartId/items</code> usa el precio y el <code>taxRate</code> vigentes del producto:</p>
+<ul>
+<li>subtotal de línea = cantidad × precio</li>
+<li>impuesto de línea = subtotal de línea × <code>taxRate</code></li>
+<li><code>summary.subtotal</code> = suma de los subtotales de línea</li>
+<li><code>summary.totalTax</code> = suma de los impuestos de línea</li>
+<li><code>summary.total</code> = <code>summary.subtotal</code> + <code>summary.totalTax</code></li>
+</ul>
+<p>Esa consulta no aplica cupón ni envío. No es el total cobrado.</p>
+<h3>Cobro</h3>
+<p><code>POST /cart/:cartId/checkout</code>. El cupón es opcional:</p>
+<pre><code class="language-json">{ &quot;coupon&quot;: { &quot;type&quot;: &quot;percent&quot;, &quot;value&quot;: 0.1, &quot;minSubtotal&quot;: 50 } }
+</code></pre>
+<p><code>type</code> es <code>percent</code> o <code>fixed</code>. Solo se acepta un cupón: si <code>coupon</code> es un arreglo, el cobro se rechaza. El umbral de envío es 50 y la tarifa es 5. Esos valores no viajan en el cuerpo; si el cliente los envía, no se usan. Están en <code>services/pricing.js</code> (<code>SHIPPING_THRESHOLD</code> y <code>SHIPPING_FEE</code>). <code>priceCheckout(items, coupon)</code> es pura: no toca la base de datos. Cada ítem es <code>{ quantity, unitPrice, taxRate }</code>.</p>
+<p>El cobro se rechaza, sin modificar el inventario, cuando ocurre cualquiera de estas condiciones:</p>
+<ul>
+<li>el carrito no existe</li>
+<li>el id de carrito no es numérico</li>
+<li>el carrito no tiene ítems</li>
+<li>el carrito ya fue cobrado</li>
+<li>alguna cantidad no es un entero mayor que cero</li>
+<li>el inventario de algún producto es menor que la cantidad de esa línea</li>
+<li>el precio es negativo, o <code>taxRate</code> no está entre 0 y 1</li>
+<li>el cupón no cumple lo de abajo</li>
+</ul>
+<p>Cupón:</p>
+<ul>
+<li><code>percent</code>: <code>value</code> es una fracción mayor que 0 y a lo sumo 1 (<code>0.1</code> es 10 %). Exige <code>minSubtotal</code> mayor o igual que 0. Si el subtotal es menor que ese mínimo, el cobro se rechaza. Si es igual, el cupón aplica.</li>
+<li><code>fixed</code>: <code>value</code> es un monto mayor que 0. Se redondea al centavo y después se compara con el subtotal. Si lo supera, el cobro se rechaza. Si es igual, la base queda en 0.</li>
+<li>No se acumulan. Un cupón <code>fixed</code> no consulta <code>minSubtotal</code>.</li>
+</ul>
+<p>El cálculo, en este orden:</p>
+<ol>
+<li>El precio unitario se redondea al centavo más cercano. Si el centavo cae exactamente a la mitad, se redondea alejándose de cero. <code>price</code> y <code>taxRate</code> se guardan como FLOAT: un decimal que el binario no representa puede entrar al cálculo ya distinto del valor escrito.</li>
+<li>El subtotal de línea es ese precio por la cantidad. El subtotal del pedido es la suma de las líneas.</li>
+<li>El descuento se calcula sobre ese subtotal.</li>
+<li>El descuento se reparte en el orden de las líneas, en proporción al subtotal de cada una, redondeado al centavo y sin pasar del descuento que todavía no se ha repartido. La última línea recibe el resto. Cada descuento de línea queda entre 0 y el subtotal de esa línea, y la suma es el descuento del pedido.</li>
+<li>El impuesto de cada línea es (subtotal de línea − descuento de línea) × <code>taxRate</code>, redondeado al centavo. El impuesto del pedido es la suma. El impuesto va después del descuento.</li>
+<li>La base es subtotal − descuento. Si la base es mayor o igual que 50, el envío es 0. Si es menor, el envío es 5.</li>
+<li>El total es base + impuesto + envío.</li>
+</ol>
+<p>La respuesta y <code>GET /cart/:cartId/order</code> expresan los montos en unidades, no en centavos. <code>priceCheckout</code> devuelve esos mismos montos y también los enteros en centavos (<code>subtotalCents</code>, <code>discountCents</code>, <code>taxableCents</code>, <code>taxCents</code>, <code>shippingCents</code>, <code>totalCents</code>, y los equivalentes en cada línea).</p>
+<p>El pedido guarda el resultado. Un cambio posterior del precio no lo modifica. El carrito pasa a <code>checked_out</code> y un segundo cobro se rechaza. El inventario de cada producto baja en la cantidad de su línea. Si una línea no alcanza, no se descuenta ninguna. Dos cobros simultáneos pueden leer el mismo inventario antes de grabar y descontar de menos.</p>
+<p><code>POST</code>, <code>PUT</code> y <code>DELETE</code> de ítems no consultan <code>checked_out</code>. <code>addItemToCart</code> tampoco. Un ítem agregado después del cobro no entra en el pedido. <code>GET /cart/:cartId/items</code> sigue calculando con el precio vigente.</p>
+<p><code>GET /cart/:cartId/order</code> devuelve el pedido. Si el carrito no existe, o todavía no hay pedido, responde 404.</p>
+<p>El cuerpo de un cobro sin cupón, de dos unidades a 100 con <code>taxRate</code> 0.07, tiene <code>subtotal</code> 200, <code>discount</code> 0, <code>taxable</code> 200, <code>tax</code> 14, <code>shipping</code> 0 y <code>total</code> 214. Con una unidad a 40 y <code>taxRate</code> 0, el envío es 5 y el total es 45. Con una unidad a 50 y <code>taxRate</code> 0, el envío es 0 y el total es 50.</p>
+<h3>Texto de los errores</h3>
+<p>El JSON es <code>{ "error": "&lt;texto&gt;" }</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Situación</th>
+<th>Estado</th>
+<th>Texto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Carrito inexistente</td>
+<td>404</td>
+<td><code>Cart doesn't exist</code></td>
+</tr>
+<tr>
+<td>Id de carrito no numérico</td>
+<td>400</td>
+<td><code>Cart ID should be a number</code></td>
+</tr>
+<tr>
+<td>Carrito sin ítems</td>
+<td>400</td>
+<td><code>Cart is empty</code></td>
+</tr>
+<tr>
+<td>Carrito ya cobrado</td>
+<td>400</td>
+<td><code>Cart already checked out</code></td>
+</tr>
+<tr>
+<td>Cantidad que no es un entero mayor que cero</td>
+<td>400</td>
+<td><code>Quantity must be a positive integer</code></td>
+</tr>
+<tr>
+<td>Inventario insuficiente</td>
+<td>400</td>
+<td><code>Not enough inventory available</code></td>
+</tr>
+<tr>
+<td>Producto de la línea inexistente</td>
+<td>400</td>
+<td><code>Product not found</code></td>
+</tr>
+<tr>
+<td>Precio negativo</td>
+<td>400</td>
+<td><code>Price must be zero or greater</code></td>
+</tr>
+<tr>
+<td><code>taxRate</code> fuera de 0 a 1</td>
+<td>400</td>
+<td><code>Tax rate must be between 0 and 1</code></td>
+</tr>
+<tr>
+<td><code>coupon</code> es un arreglo u otro valor que no es objeto</td>
+<td>400</td>
+<td><code>Only one coupon is allowed</code></td>
+</tr>
+<tr>
+<td><code>type</code> distinto de <code>percent</code> y de <code>fixed</code></td>
+<td>400</td>
+<td><code>Coupon type must be percent or fixed</code></td>
+</tr>
+<tr>
+<td><code>value</code> que no es un número mayor que cero</td>
+<td>400</td>
+<td><code>Coupon value must be greater than zero</code></td>
+</tr>
+<tr>
+<td>Porcentaje mayor que 1</td>
+<td>400</td>
+<td><code>Percent coupon cannot exceed 1</code></td>
+</tr>
+<tr>
+<td>Porcentaje sin mínimo válido</td>
+<td>400</td>
+<td><code>Percent coupon requires a minimum subtotal</code></td>
+</tr>
+<tr>
+<td>Subtotal por debajo del mínimo</td>
+<td>400</td>
+<td><code>Coupon minimum not met</code></td>
+</tr>
+<tr>
+<td>Monto fijo mayor que el subtotal</td>
+<td>400</td>
+<td><code>Coupon exceeds subtotal</code></td>
+</tr>
+<tr>
+<td>Pedido todavía no creado</td>
+<td>404</td>
+<td><code>Order not found</code></td>
+</tr>
+</tbody>
+</table>
+<h2>Pruebas</h2>
+<h3>Comandos</h3>
+<p>Desde la raíz del proyecto:</p>
+<pre><code class="language-powershell">$env:NODE_ENV = 'test'
+npm.cmd test
+</code></pre>
+<p>En Linux o macOS:</p>
+<pre><code class="language-bash">NODE_ENV=test npm test
+</code></pre>
+<p><strong>Advertencia:</strong> <code>NODE_ENV=test</code> es obligatorio. Las pruebas de rutas llaman a <code>sequelize.sync({ force: true })</code>; sin esa variable, Sequelize usa <code>./db.sqlite</code> y se borrarían sus tablas. Con <code>NODE_ENV=test</code>, la base es SQLite <strong>en memoria</strong> (<code>models/index.js</code>). El pipeline de CI define la misma variable en el job <code>test</code>.</p>
+<p>Para ejecutar en serie, como en la evidencia académica:</p>
+<pre><code class="language-powershell">$env:NODE_ENV = 'test'
+npm.cmd test -- --runInBand
+</code></pre>
+<h3>Resultado actual</h3>
+<p>Último resultado en el commit de código (<code>1e928eb</code>):</p>
+<ul>
+<li><strong>9 suites</strong> y <strong>125 pruebas</strong>, todas en PASS.</li>
+<li>De esas 125, <strong>2 son <code>it.failing</code></strong> (CP-05 y CP-06). Documentan los defectos H-01 y H-02 y pasan porque el defecto sigue presente. Si el servicio se corrige, la prueba fallará y debe cambiarse a <code>it</code>.</li>
+</ul>
+<p>Hallazgos de la evidencia académica:</p>
+<table>
+<thead>
+<tr>
+<th>Hallazgo</th>
+<th>Caso</th>
+<th>Entrada</th>
+<th>Resultado observado bajo mocks</th>
+<th>Resultado esperado</th>
+<th>Estado en la suite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H-01</td>
+<td>CP-05</td>
+<td>Cantidad <code>0</code></td>
+<td>La promesa se resolvió</td>
+<td>Debía rechazarse</td>
+<td><code>it.failing</code> (documenta el defecto)</td>
+</tr>
+<tr>
+<td>H-02</td>
+<td>CP-06</td>
+<td>Cantidad <code>-1</code></td>
+<td>La promesa se resolvió</td>
+<td>Debía rechazarse</td>
+<td><code>it.failing</code> (documenta el defecto)</td>
+</tr>
+</tbody>
+</table>
+<p>Los hallazgos provienen de pruebas unitarias con mocks; no prueban una inserción real de esas cantidades en SQLite.</p>
+<h3>Alcance de la suite automatizada</h3>
+<p>La entrega académica documenta <strong>22 casos CP-01 a CP-22</strong> para servicios de carrito y productos, incluyendo clases válidas, inválidas y límites. Se utilizan <strong>Jest</strong> para las aserciones y <strong>Supertest</strong> para algunas pruebas de rutas HTTP.</p>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th style="text-align: right;">Pruebas</th>
+<th>Propósito</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tests/services/cartService.test.js</code></td>
+<td style="text-align: right;">en el resto</td>
+<td>CP-02 a CP-09, CP-19 a CP-22 (carrito; CP-05 y CP-06 como <code>it.failing</code>)</td>
+</tr>
+<tr>
+<td><code>tests/services/productService.test.js</code></td>
+<td style="text-align: right;">en el resto</td>
+<td>CP-10 a CP-18 (productos y categorías)</td>
+</tr>
+<tr>
+<td><code>tests/routes/*.test.js</code></td>
+<td style="text-align: right;">en el resto</td>
+<td>Rutas de carrito, productos y categorías con Supertest</td>
+</tr>
+<tr>
+<td><code>tests/services/pricing.test.js</code></td>
+<td style="text-align: right;">38</td>
+<td>Suite propia de <code>services/pricing.js</code> (mutación)</td>
+</tr>
+<tr>
+<td><code>tests/services/pricing.fuzz.test.js</code></td>
+<td style="text-align: right;">4</td>
+<td>Prueba de propiedades (fuzz) de <code>priceCheckout</code></td>
+</tr>
+<tr>
+<td><code>tests/ai-generated/pricing.ai-original.test.js</code></td>
+<td style="text-align: right;">15</td>
+<td>Pruebas generadas por IA sin editar (comparación)</td>
+</tr>
+<tr>
+<td><code>tests/ai-generated/pricing.ai-reviewed.test.js</code></td>
+<td style="text-align: right;">34</td>
+<td>Pruebas generadas por IA tras revisión (comparación)</td>
+</tr>
+</tbody>
+</table>
+<p>Las pruebas de <code>tests/ai-generated/</code> se conservan separadas porque son el insumo de la comparación con IA. Jest las ejecuta junto con el resto.</p>
+<h3>Separación entre servidor real y aplicación aislada de Supertest</h3>
+<p>La API principal utiliza los prefijos <code>/cart</code>, <code>/products</code> y <code>/categories</code>, según el apartado <strong>Rutas canónicas</strong>. En <code>tests/routes/cart.test.js</code>, la aplicación Express aislada se configura así:</p>
+<pre><code class="language-javascript">const app = express();
+app.use(bodyParser.json());
+app.use('/api/carts', cartRouter);
+</code></pre>
+<p>Por ello, el caso CP-07 utiliza <code>GET /api/carts/99999/items</code> en esa aplicación de prueba, mientras que el servidor normal expone las rutas de carrito bajo <code>/cart</code>. No se deben confundir ambos prefijos.</p>
+<h3>Base de datos y preparación de pruebas</h3>
+<p>En <code>models/index.js</code>, cuando <code>NODE_ENV=test</code>, Sequelize utiliza SQLite <strong>en memoria</strong>, con <code>storage: ':memory:'</code>. En otro entorno, la configuración utiliza <code>./db.sqlite</code>. En <code>tests/setup/testDb.js</code>, <code>initTestDb()</code> realiza <code>sequelize.sync({ force: true })</code> y <code>closeTestDb()</code> cierra la conexión.</p>
+<p><strong>Advertencia:</strong> <code>force: true</code> recrea las tablas de la base de datos conectada. Antes de ejecutar pruebas hay que establecer <code>NODE_ENV=test</code>; evitar ejecutarlas contra una base persistente de trabajo.</p>
+<h2>Cobertura</h2>
+<pre><code class="language-powershell">$env:NODE_ENV = 'test'
+npm.cmd run test:coverage
+</code></pre>
+<p>El script ejecuta <code>jest --coverage --detectOpenHandles --forceExit</code>. Salida registrada: <code>reports/coverage-run.txt</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th style="text-align: right;">Sentencias</th>
+<th style="text-align: right;">Ramas</th>
+<th style="text-align: right;">Funciones</th>
+<th style="text-align: right;">Líneas</th>
+<th>Líneas sin cubrir</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>services/pricing.js</code></td>
+<td style="text-align: right;">100 %</td>
+<td style="text-align: right;"><strong>100 %</strong></td>
+<td style="text-align: right;">100 %</td>
+<td style="text-align: right;">100 %</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>services/cartService.js</code></td>
+<td style="text-align: right;">84.78 %</td>
+<td style="text-align: right;"><strong>83.33 %</strong></td>
+<td style="text-align: right;">83.33 %</td>
+<td style="text-align: right;">84.78 %</td>
+<td>93–103</td>
+</tr>
+<tr>
+<td><code>services/productService.js</code></td>
+<td style="text-align: right;">84.21 %</td>
+<td style="text-align: right;"><strong>84.61 %</strong></td>
+<td style="text-align: right;">62.50 %</td>
+<td style="text-align: right;">84.21 %</td>
+<td>7–11, 37, 87, 92, 95</td>
+</tr>
+<tr>
+<td>Proyecto completo (<code>All files</code>)</td>
+<td style="text-align: right;">69.49 %</td>
+<td style="text-align: right;">68.24 %</td>
+<td style="text-align: right;">53.84 %</td>
+<td style="text-align: right;">69.05 %</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Los dos servicios asignados superan el mínimo académico de <strong>70 % de ramas por servicio</strong>. El porcentaje global incluye módulos de rutas que no se evaluaron con ese mínimo.</p>
+<p>Cobertura de ramas de <code>cartService.js</code> y <code>productService.js</code> en la entrega académica: 83.33 % y 84.61 %. Las líneas 93–103 de <code>cartService.js</code> (actualizar y eliminar ítems) siguen sin cubrir y se documentan como trabajo futuro.</p>
+<h2>Lint</h2>
+<pre><code class="language-bash">npm run lint
+</code></pre>
+<p>El script ejecuta <code>npx eslint models services routes</code> con la configuración <code>eslint.config.mjs</code> (<code>@eslint/js</code> recommended). La regla <code>eqeqeq</code> no forma parte de <code>eslint:recommended</code>.</p>
+<ul>
+<li>Salida limpia del commit final: <code>reports/lint-clean.txt</code> (exit code 0).</li>
+<li>Corrida en rojo con 5 violaciones de 2 reglas (<code>no-unused-vars</code> ×4 y <code>no-undef</code> ×1): <code>reports/lint-red.txt</code>, y el triage en <code>reports/triage-lint.md</code>.</li>
+</ul>
+<h2>Mutación con Stryker</h2>
+<p>La mutación se aplica a <strong>un único servicio</strong>: <code>services/pricing.js</code>. Se usan tres configuraciones, una por corrida comparable. Cada una apunta a su propio archivo de Jest mediante <code>jest.configFile</code>, así que no hay que mover archivos entre corridas.</p>
+<table>
+<thead>
+<tr>
+<th>Corrida</th>
+<th>Configuración</th>
+<th>Archivo de Jest</th>
+<th style="text-align: right;">Pruebas</th>
+<th style="text-align: right;">Score</th>
+<th style="text-align: right;">Muertos</th>
+<th style="text-align: right;">Sobrevivientes</th>
+<th style="text-align: right;">Sin cobertura</th>
+<th>Evidencia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Baseline (antes de la mejora)</td>
+<td>— (ver nota)</td>
+<td><code>tests/services/pricing.test.js</code> antes de la mejora</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;"><strong>85.51 %</strong></td>
+<td style="text-align: right;">176</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">0</td>
+<td><code>reports/mutation-baseline.txt</code></td>
+</tr>
+<tr>
+<td>Suite propia (después)</td>
+<td><code>stryker.pricing.config.json</code></td>
+<td><code>jest.stryker.suite-propia.config.js</code></td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;"><strong>90.34 %</strong></td>
+<td style="text-align: right;">186</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0</td>
+<td><code>reports/stryker/suite-propia/</code></td>
+</tr>
+<tr>
+<td>Modelo tal cual (IA)</td>
+<td><code>stryker.ia-original.config.json</code></td>
+<td><code>jest.stryker.ia-original.config.js</code></td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;"><strong>69.57 %</strong></td>
+<td style="text-align: right;">143</td>
+<td style="text-align: right;">53</td>
+<td style="text-align: right;">10</td>
+<td><code>reports/stryker/ia-original/</code></td>
+</tr>
+<tr>
+<td>Modelo revisado (IA + analista)</td>
+<td><code>stryker.ia-revisada.config.json</code></td>
+<td><code>jest.stryker.ia-revisada.config.js</code></td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;"><strong>91.79 %</strong></td>
+<td style="text-align: right;">189</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">0</td>
+<td><code>reports/stryker/ia-revisada/</code></td>
+</tr>
+</tbody>
+</table>
+<p>Las tres corridas comparables de la Tarea 2 son: suite propia, modelo tal cual y modelo revisado. Las tres se reprodujeron con los comandos siguientes y dieron exactamente los mismos números.</p>
+<h3>Comandos</h3>
+<pre><code class="language-powershell">npx stryker run stryker.pricing.config.json
+npx stryker run stryker.ia-original.config.json
+npx stryker run stryker.ia-revisada.config.json
+</code></pre>
+<p>Cada comando escribe su reporte HTML en <code>reports/stryker/&lt;corrida&gt;/mutation.html</code>. Para guardar el registro de texto, redirigir la salida a <code>log.txt</code> en esa misma carpeta.</p>
+<p><code>npx stryker run</code> sin argumentos usa <code>stryker.config.json</code>, la configuración original del proyecto, que muta todos los servicios. No se usó para las métricas.</p>
+<h3>Notas de interpretación</h3>
+<ul>
+<li><strong>Baseline:</strong> se obtuvo con la suite propia antes de añadir las cuatro pruebas de la mejora, por lo que el archivo de pruebas de esa versión no está versionado. La evidencia es el texto <code>reports/mutation-baseline.txt</code>. Para reproducirla, se necesita esa versión de la suite.</li>
+<li><strong>Mutantes equivalentes:</strong> algunos sobrevivientes son equivalentes (no cambian el comportamiento observable). Por ejemplo, el guard <code>typeof x !== 'number'</code> es redundante con <code>Number.isFinite(x)</code>. No se pueden matar sin cambiar el código. La clasificación completa está en <code>reports/sobrevivientes-baseline.md</code>.</li>
+<li><strong>Pendiente:</strong> un mutante de la línea 159 (<code>if (true)</code> para cupones <code>fixed</code>) sigue vivo en la suite propia. Se corrige con la aserción <code>expect(result.coupon.type).toBe('fixed')</code>. No se aplicó para no alterar la medición registrada.</li>
+</ul>
+<h2>Integración continua (GitHub Actions)</h2>
+<p>El pipeline está en <code>.github/workflows/ci.yml</code> y se ejecuta en <strong>cada push y cada pull request</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Qué ejecuta</th>
+<th>Variables</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lint</code> (ESLint)</td>
+<td><code>npm ci</code> y <code>npm run lint</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>test</code> (Jest)</td>
+<td><code>npm ci</code> y <code>npm test</code></td>
+<td><code>NODE_ENV=test</code></td>
+</tr>
+</tbody>
+</table>
+<p>Ambos jobs usan Node.js 22 y <code>ubuntu-latest</code>. El job falla si falla el comando correspondiente, así que una suite roja o un lint rojo marca el run como fallido.</p>
+<h3>Verificación del pipeline</h3>
+<table>
+<thead>
+<tr>
+<th>Corrida</th>
+<th>Rama</th>
+<th>Commit</th>
+<th>ESLint</th>
+<th>Jest</th>
+<th>Enlace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Commit de código (verde)</td>
+<td><code>task3-lint-triage-fuzz</code></td>
+<td><code>1e928eb</code></td>
+<td>✅ pasa</td>
+<td>✅ pasa</td>
+<td>https://github.com/edjo16/ecommerce-api/actions/runs/45745868188</td>
+</tr>
+<tr>
+<td>Lint en rojo (demostración)</td>
+<td><code>ci/demo-lint-rojo</code></td>
+<td><code>685a086</code></td>
+<td>❌ falla</td>
+<td>✅ pasa</td>
+<td>https://github.com/edjo16/ecommerce-api/actions/runs/45745435188</td>
+</tr>
+<tr>
+<td>Suite en rojo (demostración)</td>
+<td><code>ci/demo-test-rojo</code></td>
+<td><code>69bdc8b</code></td>
+<td>✅ pasa</td>
+<td>❌ falla</td>
+<td>https://github.com/edjo16/ecommerce-api/actions/runs/45745455864</td>
+</tr>
+</tbody>
+</table>
+<p>Las dos ramas <code>ci/demo-*</code> existen solo para demostrar que el job correspondiente falla. Son ramas de evidencia; pueden eliminarse cuando se cierre la entrega.</p>
+<p>Una corrida fallida por la suite no es un error del pipeline: es el comportamiento esperado. Por eso los defectos H-01 y H-02 se marcaron con <code>it.failing</code> y no con <code>skip</code> ni eliminados: el pipeline sigue verde mientras el defecto exista, y deja de estarlo cuando se corrige el servicio.</p>
+<h2>Evidencias</h2>
+<ul>
+<li>Índice con cada evidencia, ruta, commit y enlace: <a href="reports/INDICE-EVIDENCIAS.md"><code>reports/INDICE-EVIDENCIAS.md</code></a>.</li>
+<li>Documento de entregables y riesgo residual: <a href="reports/entregables-calidad.md"><code>reports/entregables-calidad.md</code></a>.</li>
+<li>Informe final en PDF: <a href="reports/informe-final-calidad.pdf"><code>reports/informe-final-calidad.pdf</code></a>.</li>
+</ul>
+<h2>Limitaciones</h2>
+<ul>
+<li>El pull request sigue abierto y sin fusionar; no se integró en <code>master</code>.</li>
+<li>El riesgo de sobreventa por lectura concurrente del inventario (documentado en el README, sección Cobro) no se reprodujo con una prueba concurrente.</li>
+<li>Los defectos H-01 y H-02 no se corrigieron, porque la especificación se conserva como hallazgo.</li>
+<li>Las ramas <code>ci/demo-*</code> son artificiales; no forman parte del código entregable.</li>
+</ul>
+<h2>Verificación de reproducibilidad</h2>
+<p>Se verificó la instalación y ejecución de la suite desde una copia limpia del proyecto (<code>npm ci</code>), con Node.js v22 y npm 10. En la última ejecución local (<code>NODE_ENV=test npm test</code>): <strong>9 suites, 125 pruebas, 125 PASS</strong>. Las dos pruebas <code>it.failing</code> cuentan como PASS porque confirman el defecto. La cobertura de ramas de los servicios asignados supera el 70 %. Los resultados de CI están en la tabla de la sección anterior.</p>
+<p><strong>Contenido sugerido del ZIP de entrega:</strong> carpetas <code>models/</code>, <code>routes/</code>, <code>services/</code>, <code>tests/</code>, <code>.github/</code>, <code>reports/</code> y demás código fuente necesario; <code>package.json</code>, <code>package-lock.json</code>, un único <code>README.md</code> y los reportes. No incluir <code>node_modules</code>, credenciales, archivos <code>.env</code> con secretos ni copias duplicadas del README.</p></section><section class="pagina" id="reports/entregables-calidad.md"><h1>Entregables de calidad — API de comercio electrónico</h1>
+<p><strong>Proyecto:</strong> <code>ecommerce-app</code> (Express + Sequelize + SQLite)
+<strong>Módulo bajo análisis:</strong> <code>services/pricing.js</code> (cálculo de cobro: descuentos, impuesto y envío)
+<strong>Rama de trabajo:</strong> <code>task3-lint-triage-fuzz</code> (publicada en <code>origin</code>; ver sección 6)
+<strong>Entorno:</strong> Node.js v22.12.0 en Windows; Jest 29.7; Stryker 8.x (<code>@stryker-mutator/core</code> ^8.6.0 según <code>package.json</code>); ESLint 9 con <code>eslint:recommended</code>.
+<strong>Rol:</strong> analista de calidad.</p>
+<h2>0. Resumen</h2>
+<table>
+<thead>
+<tr>
+<th>Tarea</th>
+<th>Resultado principal</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Mutación (Stryker)</td>
+<td>Score 85.51 % → 90.34 % con la misma configuración; 6 sobrevivientes clasificados; 6 mutantes de oráculo débil muertos (líneas 23, 33 y 159)</td>
+<td>Completada, con un pendiente documentado</td>
+</tr>
+<tr>
+<td>2. Pruebas con IA</td>
+<td>Modelo tal cual 69.57 %; modelo revisado 91.79 %; suite propia 90.34 %</td>
+<td>Completada</td>
+</tr>
+<tr>
+<td>3. Lint, triage y fuzz</td>
+<td>Lint limpio en el commit final; corrida roja con 5 violaciones de 2 reglas; prueba fuzz de 500 entradas; riesgo residual redactado</td>
+<td>Completada; PR creado manualmente (sección 6)</td>
+</tr>
+</tbody>
+</table>
+<p>Hallazgos previos no corregidos (fuera de alcance, por regla del README): <strong>H-01</strong> (CP-05, cantidad 0 aceptada) y <strong>H-02</strong> (CP-06, cantidad negativa aceptada). Las pruebas siguen fallando a propósito; la suite completa tiene 125 pruebas, 2 fallan, 123 pasan.</p>
+<hr />
+<h2>1. Tarea 1 — Pruebas de mutación</h2>
+<h3>1.1 Pasos ejecutados</h3>
+<ol>
+<li>Se verificó la línea base de la suite: 34 pruebas, 32 PASS y 2 FAIL (H-01/H-02), igual que en la evidencia académica.</li>
+<li>Se añadió <code>testPathIgnorePatterns</code> para excluir <code>.stryker-tmp/</code>, porque Jest recogía los sandboxes de Stryker y duplicaba fallos.</li>
+<li>Se eligió <strong>un único servicio</strong>: <code>services/pricing.js</code>, por ser una función pura sin base de datos (sin mocks frágiles) y con reglas numéricas que las mutaciones pueden alterar.</li>
+<li>Se creó <code>stryker.pricing.config.json</code> (mutate: <code>services/pricing.js</code>, runner Jest, <code>coverageAnalysis: perTest</code>).</li>
+<li>Se escribió la suite propia <code>tests/services/pricing.test.js</code> (38 pruebas) cubriendo envío, cupones, reparto de descuento, validaciones y límites.</li>
+<li>Se ejecutó Stryker → <strong>baseline</strong>: 85.51 %.</li>
+<li>Se clasificaron los sobrevivientes (ver 1.3).</li>
+<li>Se mejoraron las pruebas para los oráculos débiles y se volvió a ejecutar Stryker <strong>sin cambiar la configuración</strong> → <strong>después</strong>: 90.34 %.</li>
+</ol>
+<h3>1.2 Entregables</h3>
+<table>
+<thead>
+<tr>
+<th>Entregable</th>
+<th>Archivo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Configuración</td>
+<td><code>stryker.pricing.config.json</code></td>
+</tr>
+<tr>
+<td>Reporte baseline (texto)</td>
+<td><code>reports/mutation-baseline.txt</code> (+ <code>reports/mutation-baseline/</code>)</td>
+</tr>
+<tr>
+<td>Reporte después (texto)</td>
+<td><code>reports/mutation-despues.txt</code> (+ <code>reports/mutation-despues/mutation.html</code>)</td>
+</tr>
+<tr>
+<td>Reporte HTML</td>
+<td><code>reports/mutation/mutation.html</code> (última corrida)</td>
+</tr>
+<tr>
+<td>Tabla de sobrevivientes</td>
+<td><code>reports/sobrevivientes-baseline.md</code></td>
+</tr>
+<tr>
+<td>Pruebas mejoradas</td>
+<td><code>tests/services/pricing.test.js</code></td>
+</tr>
+</tbody>
+</table>
+<p>Nota: el HTML de la corrida baseline se sobrescribió por las corridas posteriores; su evidencia completa es el texto <code>reports/mutation-baseline.txt</code>, que contiene el mismo score y la lista de mutantes.</p>
+<h3>1.3 Sobrevivientes clasificados (6 mínimo)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Archivo</th>
+<th>Línea</th>
+<th>Operador</th>
+<th>Estado</th>
+<th>Clase</th>
+<th>Razón</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>services/pricing.js</td>
+<td>23:7</td>
+<td>ConditionalExpression</td>
+<td>Muerto</td>
+<td>Oráculo débil</td>
+<td>No había prueba con cupón string; se añadió</td>
+</tr>
+<tr>
+<td>2</td>
+<td>services/pricing.js</td>
+<td>33:9</td>
+<td>EqualityOperator (<code>&gt; 1</code> → <code>&gt;= 1</code>)</td>
+<td>Muerto</td>
+<td>Límite</td>
+<td>Faltaba el valor frontera <code>value = 1</code>; se añadió</td>
+</tr>
+<tr>
+<td>3</td>
+<td>services/pricing.js</td>
+<td>93:9</td>
+<td>ConditionalExpression / LogicalOperator</td>
+<td>Sobrevive</td>
+<td>Equivalente</td>
+<td><code>Number.isFinite</code> ya rechaza no-números; el <code>typeof</code> es redundante</td>
+</tr>
+<tr>
+<td>4</td>
+<td>services/pricing.js</td>
+<td>159:7</td>
+<td>ConditionalExpression (<code>→ true</code>)</td>
+<td>Sobrevive (1 de 5)</td>
+<td>Oráculo débil parcial</td>
+<td>Cupón <code>fixed</code> sin aserción de <code>coupon.type</code>. <strong>Pendiente</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>services/pricing.js</td>
+<td>64:7</td>
+<td>ConditionalExpression</td>
+<td>Sobrevive</td>
+<td>Equivalente</td>
+<td>Retorno temprano que devuelve los mismos ceros</td>
+</tr>
+<tr>
+<td>6</td>
+<td>services/pricing.js</td>
+<td>70:19</td>
+<td>EqualityOperator (<code>&lt; → &lt;=</code>)</td>
+<td>Sobrevive</td>
+<td>Equivalente</td>
+<td>Índice extra que nunca se lee</td>
+</tr>
+</tbody>
+</table>
+<h3>1.4 Mutantes de oráculo débil o no alcanzados</h3>
+<ul>
+<li>Mutantes de oráculo débil o no alcanzados que pasaron a muertos: <strong>6</strong></li>
+<li>Línea 23: 1 mutante.</li>
+<li>Línea 33: 1 mutante.</li>
+<li>Línea 159: 4 de 5 mutantes (queda <code>if (true)</code>, pendiente de la sección 1.6).</li>
+<li>Se pedían al menos 3, así que se cumple. Línea 93 no cuenta: sus mutantes son equivalentes y no son matables.</li>
+</ul>
+<h3>1.5 Score antes y después (misma configuración)</h3>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Baseline</th>
+<th>Después</th>
+<th>Diferencia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mutation score</td>
+<td>85.51 %</td>
+<td>90.34 %</td>
+<td>+4.83 pp</td>
+</tr>
+<tr>
+<td>Muertos</td>
+<td>176</td>
+<td>186</td>
+<td>+10</td>
+</tr>
+<tr>
+<td>Sobrevivientes</td>
+<td>30</td>
+<td>20</td>
+<td>−10</td>
+</tr>
+<tr>
+<td>Timeouts</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<h3>1.6 Pendiente técnico</h3>
+<p>Añadir <code>expect(result.coupon.type).toBe('fixed')</code> en la prueba de cupón fijo de <code>tests/services/pricing.test.js</code> debería matar el mutante restante de la línea 159. No se aplicó en esta entrega para no alterar la medición "después" que ya quedó registrada.</p>
+<hr />
+<h2>2. Tarea 2 — Comparación de pruebas con IA</h2>
+<h3>2.1 Pasos ejecutados</h3>
+<ol>
+<li><strong>Prompt</strong> a partir del código de <code>pricing.js</code> y las reglas A1 del README (umbral 50/5, cupones, orden de cálculo, errores). El prompt no menciona mutantes ni Stryker → <code>reports/prompt-ia.md</code>.</li>
+<li><strong>Generación</strong> de pruebas por el modelo, sin editar → <code>tests/ai-generated/pricing.ai-original.test.js</code> (15 pruebas, 15 PASS).</li>
+<li><strong>Revisión crítica</strong> por el analista: se añadieron aserciones sobre campos intermedios (<code>coupon.type</code>, <code>taxable</code>, descuentos por línea), los límites <code>value = 1</code> y <code>minSubtotal</code> igual al subtotal, y validaciones de tipo → <code>tests/ai-generated/pricing.ai-reviewed.test.js</code> (34 pruebas, 34 PASS).</li>
+<li><strong>Stryker</strong> sobre cada variante aislada (solo su archivo de prueba activo), con la misma configuración.</li>
+<li><strong>Comparación</strong> y memo.</li>
+</ol>
+<h3>2.2 Resultados</h3>
+<table>
+<thead>
+<tr>
+<th>Variante</th>
+<th>Pruebas</th>
+<th>Score</th>
+<th>Muertos</th>
+<th>Sobrevivientes</th>
+<th>Sin cobertura</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Suite propia</td>
+<td>38</td>
+<td>90.34 %</td>
+<td>186</td>
+<td>20</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Modelo tal cual</td>
+<td>15</td>
+<td>69.57 %</td>
+<td>143</td>
+<td>53</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Modelo revisado</td>
+<td>34</td>
+<td>91.79 %</td>
+<td>189</td>
+<td>17</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Conclusión: el modelo sin revisión deja 10 mutantes sin cubrir y oráculos débiles. Tras la revisión, supera a la suite propia por 1.45 pp, aunque la diferencia es pequeña y las supervivencias residuales son en gran parte equivalentes.</p>
+<h3>2.3 Entregables</h3>
+<table>
+<thead>
+<tr>
+<th>Entregable</th>
+<th>Archivo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prompt</td>
+<td><code>reports/prompt-ia.md</code></td>
+</tr>
+<tr>
+<td>Pruebas originales (IA tal cual)</td>
+<td><code>tests/ai-generated/pricing.ai-original.test.js</code></td>
+</tr>
+<tr>
+<td>Pruebas revisadas</td>
+<td><code>tests/ai-generated/pricing.ai-reviewed.test.js</code></td>
+</tr>
+<tr>
+<td>Reportes</td>
+<td><code>reports/mutation-ai-original.txt</code>, <code>reports/mutation-ai-reviewed.txt</code>, carpetas <code>reports/mutation-ai-*/</code></td>
+</tr>
+<tr>
+<td>Tabla comparativa</td>
+<td>sección 2.2 de este documento y <code>reports/memo-ia-comparacion.md</code></td>
+</tr>
+<tr>
+<td>Memo</td>
+<td><code>reports/memo-ia-comparacion.md</code></td>
+</tr>
+<tr>
+<td>Registro de IA</td>
+<td>sección "Registro de IA" de <code>reports/memo-ia-comparacion.md</code></td>
+</tr>
+</tbody>
+</table>
+<h3>2.4 Corrección al memo</h3>
+<p>En una primera versión del memo se afirmó que la línea 93 y la línea 159 las mataban todas las variantes. La verificación contra los reportes mostró que la línea 93 es equivalente en las tres variantes y que la línea 159 sigue con un mutante vivo en la suite propia. El memo ya está corregido.</p>
+<hr />
+<h2>3. Tarea 3 — Análisis estático, triage y fuzz</h2>
+<h3>3.1 Salida de lint en el commit final</h3>
+<p>Comando: <code>npm run lint</code> (= <code>npx eslint models services routes</code>), commit final <code>services/pricing.js</code> idéntico a <code>master</code>.
+Archivo: <code>reports/lint-clean.txt</code></p>
+<pre><code>&gt; ecommerce-app@1.0.0 lint
+&gt; npx eslint models services routes
+</code></pre>
+<p>Exit code 0, sin errores ni advertencias.</p>
+<h3>3.2 Introducción de violaciones y corrida en rojo</h3>
+<p>Se introdujeron <strong>5 violaciones de 2 reglas</strong> existentes en <code>services/pricing.js</code>, en un commit propio de la rama:</p>
+<ul>
+<li><code>no-unused-vars</code> × 4 (<code>dummyCompare</code>, <code>unusedVarOne</code>, <code>unusedVarTwo</code>, <code>nuncaInvocada</code>)</li>
+<li><code>no-undef</code> × 1 (<code>variableQueNoExiste</code>, dentro de una función nunca invocada)</li>
+</ul>
+<p>Salida real (<code>reports/lint-red.txt</code>, exit code 1):</p>
+<pre><code>C:\Users\edgar\UTP\ecommerce-api\services\pricing.js
+  174:10  error  'dummyCompare' is defined but never used           no-unused-vars
+  185:7   error  'unusedVarOne' is assigned a value but never used  no-unused-vars
+  186:5   error  'unusedVarTwo' is assigned a value but never used  no-unused-vars
+  189:10  error  'nuncaInvocada' is defined but never used          no-unused-vars
+  190:10  error  'variableQueNoExiste' is not defined               no-undef
+
+✖ 5 problems (5 errors, 0 warnings)
+</code></pre>
+<p>Nota: <code>==</code> en <code>dummyCompare</code> no se reportó porque <code>eslint:recommended</code> no incluye <code>eqeqeq</code>.</p>
+<h3>3.3 Triage</h3>
+<p>Documento completo: <code>reports/triage-lint.md</code>. Resumen:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Regla</th>
+<th>Hallazgo</th>
+<th>Severidad</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>no-undef</td>
+<td><code>variableQueNoExiste</code></td>
+<td>Alta (latente)</td>
+<td>ReferenceError si se invocara; eliminado</td>
+</tr>
+<tr>
+<td>2</td>
+<td>no-unused-vars</td>
+<td><code>nuncaInvocada</code></td>
+<td>Media</td>
+<td>Código muerto que oculta el hallazgo 1; eliminado</td>
+</tr>
+<tr>
+<td>3</td>
+<td>no-unused-vars</td>
+<td><code>dummyCompare</code></td>
+<td>Baja</td>
+<td>Código muerto; eliminado</td>
+</tr>
+<tr>
+<td>4</td>
+<td>no-unused-vars</td>
+<td><code>unusedVarOne</code></td>
+<td>Baja</td>
+<td>Eliminado</td>
+</tr>
+<tr>
+<td>5</td>
+<td>no-unused-vars</td>
+<td><code>unusedVarTwo</code></td>
+<td>Baja</td>
+<td>Eliminado</td>
+</tr>
+</tbody>
+</table>
+<h3>3.4 Prueba complementaria: fuzz / propiedades</h3>
+<p>Archivo: <code>tests/services/pricing.fuzz.test.js</code></p>
+<table>
+<thead>
+<tr>
+<th>Elemento</th>
+<th>Detalle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generador</td>
+<td>1–4 ítems por entrada. Con probabilidad 0.85, ítem válido (cantidad 1–10, precio 0–200 con dos decimales, taxRate en {0, 0.07, 0.16, 0.5, 1}); en otro caso, ítem inválido (cantidad 0/−1/2.5, precio −5/'100'/null, taxRate −0.1/1.5). Cupón: null (10 %), percent con value 0.01–1 y minSubtotal 0–20 (45 %), fixed con value 0.01–30 (35 %), o cupón inválido (10 %).</td>
+</tr>
+<tr>
+<td>Semilla</td>
+<td>Fija (<code>20261125</code>), reproducible</td>
+</tr>
+<tr>
+<td>Número de entradas</td>
+<td><strong>500</strong> totales: <strong>313 válidas</strong> y <strong>187 inválidas</strong> (la prueba exige más de 50 de cada grupo)</td>
+</tr>
+<tr>
+<td>Oráculo, entradas válidas</td>
+<td><code>total = taxable + tax + shipping</code>; <code>shipping = 0</code> si <code>taxable ≥ 50</code>, si no 5; montos finitos y no negativos; no lanza error</td>
+</tr>
+<tr>
+<td>Oráculo, entradas inválidas</td>
+<td><code>priceCheckout</code> debe lanzar error; si acepta la entrada, es fallo</td>
+</tr>
+<tr>
+<td>Insumo concreto 1</td>
+<td>1 ítem, cantidad 1, precio 100, taxRate 0.07, sin cupón → subtotal 100, impuesto 7, envío 0, total 107</td>
+</tr>
+<tr>
+<td>Insumo concreto 2</td>
+<td>2 ítems de 40 (cantidad 2, taxRate 0) con cupón fixed 30 → subtotal 80, descuento 30, base 50, envío 0, total 50</td>
+</tr>
+<tr>
+<td>Resultado</td>
+<td><strong>PASS</strong> (4 de 4 pruebas del archivo). Ningún fallo en las 500 entradas</td>
+</tr>
+</tbody>
+</table>
+<p>Historial del fuzz (honesto): la primera ejecución falló en 3 casos. Eran errores del oráculo del analista, no de <code>pricing.js</code>: el validador de cupones no consideraba que <code>minSubtotal</code> depende del subtotal de los ítems. Se corrigió el oráculo. Después, el conteo mostró que solo 21 de 500 entradas eran válidas, así que el generador se sesgó hacia entradas válidas y se añadió la aserción de mínimo de casos en cada grupo.</p>
+<h3>3.5 Riesgo residual de la API</h3>
+<p><strong>Riesgo:</strong> sobreventa o descuento insuficiente de inventario por actualización perdida en el cobro concurrente.</p>
+<ul>
+<li><strong>Descripción.</strong> <code>CheckoutService.checkout</code> lee <code>product.inventory</code> dentro de la transacción, sin bloqueo ni actualización condicional, y luego guarda el valor absoluto (<code>product.inventory -= quantity; product.save()</code>). Dos cobros simultáneos sobre el mismo producto pueden leer el mismo stock; el segundo guardado sobrescribe el descuento del primero. El inventario queda mayor que el real y se pueden vender unidades que no existen.</li>
+<li><strong>Plausibilidad.</strong> Alta: el propio README lo reconoce en la sección Cobro ("Dos cobros simultáneos pueden leer el mismo inventario antes de grabar y descontar de menos"), el endpoint es público y la transacción de SQLite es <code>DEFERRED</code>, que no evita la lectura obsoleta.</li>
+<li><strong>Impacto.</strong> Alto: pedidos sin stock, cancelaciones manuales y reputación. Probabilidad: media con tráfico concurrente; baja con el volumen actual.</li>
+<li><strong>Evidencia.</strong> Identificado por inspección de código y de la regla documentada. <strong>No reproducido</strong> en esta entrega: no hay prueba concurrente.</li>
+<li><strong>Mitigación propuesta.</strong> Decremento relativo y condicional: <code>UPDATE Products SET inventory = inventory - :qty WHERE id = :id AND inventory &gt;= :qty</code>, verificando las filas afectadas dentro de la transacción; prueba de concurrencia con <code>Promise.all</code> sobre SQLite de archivo.</li>
+<li><strong>Riesgo residual tras la mitigación.</strong> Bajo mientras la base sea SQLite de un solo proceso. Con varias instancias hará falta bloqueo a nivel de base de datos.</li>
+</ul>
+<hr />
+<h2>4. Mapa de archivos entregados</h2>
+<table>
+<thead>
+<tr>
+<th>Ruta</th>
+<th>Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stryker.pricing.config.json</code></td>
+<td>Configuración de Stryker (único servicio)</td>
+</tr>
+<tr>
+<td><code>package.json</code></td>
+<td><code>testPathIgnorePatterns</code> para <code>.stryker-tmp/</code></td>
+</tr>
+<tr>
+<td><code>.gitignore</code></td>
+<td>Excluye <code>.stryker-tmp/</code></td>
+</tr>
+<tr>
+<td><code>tests/services/pricing.test.js</code></td>
+<td>Suite propia (38 pruebas)</td>
+</tr>
+<tr>
+<td><code>tests/services/pricing.fuzz.test.js</code></td>
+<td>Prueba fuzz/propiedades (4 pruebas)</td>
+</tr>
+<tr>
+<td><code>tests/ai-generated/pricing.ai-original.test.js</code></td>
+<td>Pruebas generadas por IA sin editar</td>
+</tr>
+<tr>
+<td><code>tests/ai-generated/pricing.ai-reviewed.test.js</code></td>
+<td>Pruebas generadas por IA tras revisión</td>
+</tr>
+<tr>
+<td><code>reports/prompt-ia.md</code></td>
+<td>Prompt</td>
+</tr>
+<tr>
+<td><code>reports/sobrevivientes-baseline.md</code></td>
+<td>Tabla de sobrevivientes</td>
+</tr>
+<tr>
+<td><code>reports/memo-ia-comparacion.md</code></td>
+<td>Memo comparativo y registro de IA</td>
+</tr>
+<tr>
+<td><code>reports/mutation-*.txt</code>, <code>reports/mutation-*/</code>, <code>reports/mutation/</code></td>
+<td>Reportes de Stryker</td>
+</tr>
+<tr>
+<td><code>reports/lint-red.txt</code></td>
+<td>Corrida roja de lint</td>
+</tr>
+<tr>
+<td><code>reports/lint-clean.txt</code></td>
+<td>Salida limpia de lint en el commit final</td>
+</tr>
+<tr>
+<td><code>reports/triage-lint.md</code></td>
+<td>Triage de hallazgos</td>
+</tr>
+<tr>
+<td><code>reports/entregables-calidad.md</code></td>
+<td>Este documento</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>5. Incidentes y correcciones durante el trabajo</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Incidente</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Jest ejecutaba también los sandboxes de Stryker en <code>.stryker-tmp/</code></td>
+<td><code>testPathIgnorePatterns</code> y <code>.gitignore</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>--config</code> no existe en Stryker 8 CLI</td>
+<td>Se pasa la configuración como argumento posicional</td>
+</tr>
+<tr>
+<td>3</td>
+<td>La primera corrida "solo IA" incluyó la suite propia en <code>tests/tmp-hold/</code>, invalidando esa medición</td>
+<td>Se descartó, se aisló cada variante y se repitió. Los números publicados son de las corridas aisladas</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Se borró por error <code>pricing.ai-reviewed.test.js.disabled</code> durante la limpieza</td>
+<td>Se recreó con el mismo texto de la versión revisada. Tras recrearlo <strong>no se volvió a medir</strong> su score; el 91.79 % proviene de la corrida original</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Atribución errónea de la línea 93 como "muerta" y de la 159 como "muerta del todo"</td>
+<td>Corregido tras verificar contra <code>reports/*.txt</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Triage inicial decía que <code>no-undef</code> rompería la carga del módulo</td>
+<td>Corregido: la referencia estaba dentro de una función nunca invocada</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Fuzz: oráculo de cupones incorrecto y generador sesgado a entradas inválidas</td>
+<td>Corregidos (sección 3.4)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Triage inicial mencionaba <code>eqeqeq</code> como violada</td>
+<td>Corregido: <code>eqeqeq</code> no está en <code>eslint:recommended</code></td>
+</tr>
+<tr>
+<td>9</td>
+<td>Se escribió un valor esperado de envío incorrecto en una prueba y se corrigió antes de medir</td>
+<td>Corregido</td>
+</tr>
+</tbody>
+</table>
+<p>Limitaciones: <code>gh</code> no está instalado, así que el PR no se pudo crear desde la terminal; <code>db.sqlite</code> no se modificó; los defectos H-01/H-02 no se corrigieron porque la regla del README obliga a conservar la especificación.</p>
+<hr />
+<h2>6. Solicitud de fusión (sin fusionar)</h2>
+<ul>
+<li><strong>Rama:</strong> <code>task3-lint-triage-fuzz</code> publicada en <code>origin</code> (<code>https://github.com/edjo16/ecommerce-api</code>).</li>
+<li><strong>Commits:</strong>
+  1. <code>[TEST] Tareas 1 y 2: mutación con Stryker sobre pricing.js y comparación de pruebas con IA</code>
+  2. <code>[TEST] Tarea 3: violaciones intencionales de lint (corrida en rojo)</code>
+  3. <code>[TEST] Tarea 3: lint limpio, triage y prueba fuzz de priceCheckout</code>
+  4. Ajustes de fuzz, correcciones de documentación (commit de cierre)</li>
+<li><strong>PR:</strong> <code>master ← task3-lint-triage-fuzz</code>. <strong>Sin fusionar.</strong></li>
+<li><strong>Enlace para crear el PR:</strong> <code>https://github.com/edjo16/ecommerce-api/pull/new/task3-lint-triage-fuzz</code></li>
+<li><strong>Estado:</strong> rama publicada; el PR debe abrirse con el enlace anterior, porque no hay GitHub CLI ni credenciales disponibles en este entorno para crearlo automáticamente.</li>
+</ul></section><section class="pagina" id="reports/INDICE-EVIDENCIAS.md"><h1>Índice de evidencias</h1>
+<p>Repositorio: https://github.com/edjo16/ecommerce-api · Base: <code>master</code> (<code>d49105e</code>) · Rama de entrega: <code>task3-lint-triage-fuzz</code> · Pull request sin fusionar: https://github.com/edjo16/ecommerce-api/pull/new/task3-lint-triage-fuzz</p>
+<h2>1. Commits de la rama de entrega</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Commit</th>
+<th>Mensaje</th>
+<th>Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>d49105e</code></td>
+<td>Base del proyecto (en <code>master</code>)</td>
+<td>Código original</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>7d59487</code></td>
+<td><code>[TEST] Tareas 1 y 2: mutación con Stryker y comparación con IA</code></td>
+<td>Stryker, suite propia, pruebas IA, memo, sobrevivientes</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>500bcf8</code></td>
+<td><code>[TEST] Tarea 3: violaciones intencionales de lint (corrida en rojo)</code></td>
+<td>5 violaciones de lint</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>7e68582</code></td>
+<td><code>[TEST] Tarea 3: lint limpio, triage y prueba fuzz</code></td>
+<td>Lint limpio, triage, fuzz</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>14c3983</code></td>
+<td><code>[TEST] Cierre: fuzz con generador sesgado y oráculo negativo</code></td>
+<td>Ajustes del fuzz y correcciones documentales</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>3b58b6e</code></td>
+<td><code>[CI] Pipeline de GitHub Actions</code></td>
+<td><code>.github/workflows/ci.yml</code>; CP-05 y CP-06 como <code>it.failing</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>1e928eb</code></td>
+<td><code>[CI] Corridas de Stryker reproducibles y cobertura</code></td>
+<td><strong>Commit de código verificado</strong> (CI verde)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>(HEAD)</td>
+<td>Consolidación: README, índice e informe PDF</td>
+<td>Solo documentación</td>
+</tr>
+</tbody>
+</table>
+<h2>2. Corridas de GitHub Actions</h2>
+<table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Rama</th>
+<th>Commit</th>
+<th>ESLint</th>
+<th>Jest</th>
+<th>Resultado</th>
+<th>Enlace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>45745868188</td>
+<td><code>task3-lint-triage-fuzz</code></td>
+<td><code>1e928eb</code></td>
+<td>✅</td>
+<td>✅</td>
+<td><strong>Verde (código final)</strong></td>
+<td>https://github.com/edjo16/ecommerce-api/actions/runs/45745868188</td>
+</tr>
+<tr>
+<td>45745389483</td>
+<td><code>task3-lint-triage-fuzz</code></td>
+<td><code>3b58b6e</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>Verde</td>
+<td>https://github.com/edjo16/ecommerce-api/actions/runs/45745389483</td>
+</tr>
+<tr>
+<td>45745435188</td>
+<td><code>ci/demo-lint-rojo</code></td>
+<td><code>685a086</code></td>
+<td>❌</td>
+<td>✅</td>
+<td>Rojo por ESLint (demostración)</td>
+<td>https://github.com/edjo16/ecommerce-api/actions/runs/45745435188</td>
+</tr>
+<tr>
+<td>45745455864</td>
+<td><code>ci/demo-test-rojo</code></td>
+<td><code>69bdc8b</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>Rojo por suite (demostración)</td>
+<td>https://github.com/edjo16/ecommerce-api/actions/runs/45745455864</td>
+</tr>
+</tbody>
+</table>
+<p>Verificación: consulta a la API pública <code>GET /repos/edjo16/ecommerce-api/actions/runs/{id}</code> y <code>/jobs</code>; cada run confirma <code>head_branch</code>, <code>head_sha</code> y el resultado de cada job.</p>
+<h2>3. Tarea 1 — Mutación (Stryker, <code>services/pricing.js</code>)</h2>
+<table>
+<thead>
+<tr>
+<th>Evidencia</th>
+<th>Ruta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Configuración de la corrida "suite propia"</td>
+<td><code>stryker.pricing.config.json</code></td>
+</tr>
+<tr>
+<td>Jest para la corrida "suite propia"</td>
+<td><code>jest.stryker.suite-propia.config.js</code></td>
+</tr>
+<tr>
+<td>Reporte HTML y log (90.34 %)</td>
+<td><code>reports/stryker/suite-propia/mutation.html</code>, <code>reports/stryker/suite-propia/log.txt</code></td>
+</tr>
+<tr>
+<td>Baseline (85.51 %)</td>
+<td><code>reports/mutation-baseline.txt</code>, <code>reports/mutation-baseline/</code></td>
+</tr>
+<tr>
+<td>Después (90.34 %)</td>
+<td><code>reports/mutation-despues.txt</code>, <code>reports/mutation-despues/</code></td>
+</tr>
+<tr>
+<td>Tabla de sobrevivientes (6 clasificados)</td>
+<td><code>reports/sobrevivientes-baseline.md</code></td>
+</tr>
+<tr>
+<td>Pruebas mejoradas (38 pruebas)</td>
+<td><code>tests/services/pricing.test.js</code></td>
+</tr>
+</tbody>
+</table>
+<h2>4. Tarea 2 — Comparación con IA</h2>
+<table>
+<thead>
+<tr>
+<th>Evidencia</th>
+<th>Ruta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prompt</td>
+<td><code>reports/prompt-ia.md</code></td>
+</tr>
+<tr>
+<td>Pruebas del modelo sin editar (15)</td>
+<td><code>tests/ai-generated/pricing.ai-original.test.js</code></td>
+</tr>
+<tr>
+<td>Pruebas del modelo revisadas (34)</td>
+<td><code>tests/ai-generated/pricing.ai-reviewed.test.js</code></td>
+</tr>
+<tr>
+<td>Configuración y Jest de cada corrida</td>
+<td><code>stryker.ia-original.config.json</code>, <code>jest.stryker.ia-original.config.js</code>, <code>stryker.ia-revisada.config.json</code>, <code>jest.stryker.ia-revisada.config.js</code></td>
+</tr>
+<tr>
+<td>Reporte "modelo tal cual" (69.57 %)</td>
+<td><code>reports/stryker/ia-original/mutation.html</code>, <code>reports/stryker/ia-original/log.txt</code></td>
+</tr>
+<tr>
+<td>Reporte "modelo revisado" (91.79 %)</td>
+<td><code>reports/stryker/ia-revisada/mutation.html</code>, <code>reports/stryker/ia-revisada/log.txt</code></td>
+</tr>
+<tr>
+<td>Tabla comparativa, memo y registro de IA</td>
+<td><code>reports/memo-ia-comparacion.md</code></td>
+</tr>
+</tbody>
+</table>
+<h2>5. Tarea 3 — Lint, triage y fuzz</h2>
+<table>
+<thead>
+<tr>
+<th>Evidencia</th>
+<th>Ruta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Salida de <code>npm run lint</code> en el commit final (exit 0)</td>
+<td><code>reports/lint-clean.txt</code></td>
+</tr>
+<tr>
+<td>Corrida roja de ESLint (5 violaciones, 2 reglas)</td>
+<td><code>reports/lint-red.txt</code></td>
+</tr>
+<tr>
+<td>Triage de hallazgos</td>
+<td><code>reports/triage-lint.md</code></td>
+</tr>
+<tr>
+<td>Solicitud de fusión sin fusionar</td>
+<td>Rama <code>task3-lint-triage-fuzz</code>; PR sin fusionar</td>
+</tr>
+<tr>
+<td>Prueba complementaria (fuzz, 500 entradas)</td>
+<td><code>tests/services/pricing.fuzz.test.js</code></td>
+</tr>
+<tr>
+<td>Riesgo residual de la API</td>
+<td><code>reports/entregables-calidad.md</code>, sección 3.5</td>
+</tr>
+</tbody>
+</table>
+<h2>6. Integración continua y calidad</h2>
+<table>
+<thead>
+<tr>
+<th>Evidencia</th>
+<th>Ruta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pipeline (lint + npm test en push y PR)</td>
+<td><code>.github/workflows/ci.yml</code></td>
+</tr>
+<tr>
+<td>Known defects H-01/H-02 como <code>it.failing</code></td>
+<td><code>tests/services/cartService.test.js</code> (CP-05, CP-06)</td>
+</tr>
+<tr>
+<td>Cobertura (<code>pricing</code> 100 %, <code>cartService</code> 83.33 % ramas, <code>productService</code> 84.61 % ramas)</td>
+<td><code>reports/coverage-run.txt</code></td>
+</tr>
+<tr>
+<td>Suite completa (9 suites, 125 pruebas, 125 PASS)</td>
+<td>Log de <code>npm test</code> y run 45745868188</td>
+</tr>
+<tr>
+<td>README consolidado (instalación, pruebas, cobertura, lint, Stryker, CI)</td>
+<td><code>README.md</code></td>
+</tr>
+<tr>
+<td>Entregables y riesgo residual</td>
+<td><code>reports/entregables-calidad.md</code></td>
+</tr>
+<tr>
+<td>Informe final en PDF</td>
+<td><code>reports/informe-final-calidad.pdf</code></td>
+</tr>
+</tbody>
+</table>
+<h2>7. Cómo verificar esta entrega</h2>
+<pre><code class="language-powershell">git clone https://github.com/edjo16/ecommerce-api.git
+cd ecommerce-api
+git checkout task3-lint-triage-fuzz
+$env:NODE_ENV = 'test'
+npm.cmd ci
+npm.cmd run lint
+npm.cmd test
+npx stryker run stryker.pricing.config.json
+</code></pre>
+<p>Resultados esperados: lint sin errores, 125 pruebas en PASS (2 de ellas <code>it.failing</code>) y 90.34 % en la corrida de suite propia.</p>
+<h2>8. Limitaciones conocidas</h2>
+<ul>
+<li>El PR sigue abierto y sin fusionar.</li>
+<li>El riesgo de sobreventa por concurrencia no se reprodujo.</li>
+<li>La línea 159 de <code>pricing.js</code> conserva un mutante vivo (<code>if (true)</code> para cupones <code>fixed</code>), pendiente de la aserción.</li>
+<li>La corrida baseline (85.51 %) depende de una versión de la suite que no quedó versionada; su evidencia es el reporte de texto.</li>
+<li>Las ramas <code>ci/demo-*</code> son artificiales y pueden eliminarse al cerrar la entrega.</li>
+</ul></section><section class="pagina" id="reports/sobrevivientes-baseline.md"><h1>Clasificación de sobrevivientes — Stryker sobre <code>services/pricing.js</code></h1>
+<p>Configuración: <code>stryker.pricing.config.json</code> (mutate: <code>services/pricing.js</code>, runner Jest, <code>coverageAnalysis: perTest</code>). No se cambió entre corridas.</p>
+<p><strong>Score inicial:</strong> 85.51 % (176 muertos, 30 sobrevivientes, 1 timeout, 207 mutantes).
+Evidencia: <code>reports/mutation-baseline.txt</code> y <code>reports/mutation/mutation.html</code>.</p>
+<h2>1. Tabla de sobrevivientes (6 clasificados)</h2>
+<p>Clases usadas: <strong>Oráculo débil</strong> (el test ejecuta el código pero no verifica el resultado que el mutante cambia), <strong>Límite</strong> (falta un valor frontera), <strong>Equivalente</strong> (el mutante no cambia el comportamiento observable).</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Archivo</th>
+<th>Línea</th>
+<th>Operador</th>
+<th>Estado (tras mejora)</th>
+<th>Clase</th>
+<th>Razón</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>services/pricing.js</code></td>
+<td>23:7</td>
+<td><code>ConditionalExpression</code> (<code>typeof coupon !== 'object'</code> → <code>false</code>)</td>
+<td><strong>Muerto</strong></td>
+<td>Oráculo débil</td>
+<td>Ninguna prueba enviaba un cupón string. Al quedar solo <code>Array.isArray</code>, el string pasaba y fallaba con otro mensaje. Se añadió la prueba <code>rechaza cupón como string</code>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>services/pricing.js</code></td>
+<td>33:9</td>
+<td><code>EqualityOperator</code> (<code>coupon.value &gt; 1</code> → <code>&gt;= 1</code>)</td>
+<td><strong>Muerto</strong></td>
+<td>Límite</td>
+<td>No existía prueba con <code>value = 1</code>, valor frontera que debe aceptarse. Se añadió <code>acepta el valor límite value = 1</code>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>services/pricing.js</code></td>
+<td>93:9</td>
+<td><code>ConditionalExpression</code> / <code>LogicalOperator</code> sobre <code>typeof item.unitPrice !== 'number'</code></td>
+<td><strong>Sobrevive</strong></td>
+<td><strong>Equivalente</strong></td>
+<td><code>Number.isFinite(x)</code> ya devuelve <code>false</code> para cualquier no-número, así que el <code>typeof</code> es redundante. La prueba con string se añadió, pero no puede matar estos mutantes sin cambiar el código. No se cuenta como muerto.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>services/pricing.js</code></td>
+<td>159:7</td>
+<td><code>ConditionalExpression</code> (<code>coupon.type === 'percent'</code> → <code>true</code>)</td>
+<td><strong>Sobrevive</strong> (1 de 5)</td>
+<td>Oráculo débil (parcial)</td>
+<td>Se mataron 4 de 5 mutantes de esta línea al aserta <code>result.coupon.type === 'percent'</code>. Queda <code>if (true)</code>: con un cupón <code>fixed</code> el mutante devuelve un objeto <code>percent</code> con <code>minSubtotal: NaN</code>, pero la prueba de <code>fixed</code> no aserta <code>coupon.type</code>. <strong>Pendiente:</strong> añadir <code>expect(result.coupon.type).toBe('fixed')</code> en la prueba de cupón fijo.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>services/pricing.js</code></td>
+<td>64:7</td>
+<td><code>ConditionalExpression</code> (<code>discountCents === 0</code> → <code>false</code>)</td>
+<td>Sobrevive</td>
+<td>Equivalente</td>
+<td>El bloque <code>if</code> solo devuelve <code>shares</code>, que ya son ceros por la inicialización de <code>new Array(n).fill(0)</code>. Saltarlo no cambia la salida.</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>services/pricing.js</code></td>
+<td>70:19</td>
+<td><code>EqualityOperator</code> (<code>i &lt; length</code> → <code>i &lt;= length</code>)</td>
+<td>Sobrevive</td>
+<td>Equivalente</td>
+<td>La iteración extra escribe en <code>shares[length]</code>, índice que nunca se lee; la salida es idéntica.</td>
+</tr>
+</tbody>
+</table>
+<h2>2. Plan de muerte de mutantes</h2>
+<p>Se pidió matar al menos 3 mutantes de oráculo débil o no alcanzados. Resultado real:</p>
+<ul>
+<li><strong>Muertos completos:</strong> líneas 23 (1 mutante) y 33 (1 mutante).</li>
+<li><strong>Muerto parcial:</strong> línea 159 (4 de 5 mutantes). El restante requiere aserción de <code>fixed</code>.</li>
+<li><strong>No muertos por equivalencia:</strong> línea 93 (los mutantes con <code>typeof</code> redundante).</li>
+</ul>
+<p>Por tanto se cumple el mínimo (≥ 3) con 2 completos y 1 parcial, y se documenta el pendiente.</p>
+<h2>3. Comparación de score (misma configuración)</h2>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Antes (baseline)</th>
+<th>Después</th>
+<th>Diferencia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mutation score</td>
+<td>85.51 %</td>
+<td>90.34 %</td>
+<td>+4.83 pp</td>
+</tr>
+<tr>
+<td>Muertos</td>
+<td>176</td>
+<td>186</td>
+<td>+10</td>
+</tr>
+<tr>
+<td>Sobrevivientes</td>
+<td>30</td>
+<td>20</td>
+<td>−10</td>
+</tr>
+<tr>
+<td>Timeouts</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Errores</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Evidencia: <code>reports/mutation-baseline.txt</code>, <code>reports/mutation-despues.txt</code>.</p>
+<p>Nota: las 20 supervivencias restantes mezclan dos tipos. Los guards <code>typeof</code> redundantes con <code>Number.isFinite</code> (líneas 29, 36, 93, 96) y los bucles/retornos equivalentes (líneas 64, 70, 71) son equivalentes; no se pueden matar sin cambiar el código. El mutante <code>if (true)</code> de la línea 159 sí es matable con la aserción pendiente. No se cambió la configuración para mejorar el score.</p></section><section class="pagina" id="reports/memo-ia-comparacion.md"><h1>Comparación de pruebas con IA — Memo y resultados</h1>
+<h2>1. Prompt enviado al modelo</h2>
+<p>Se preparó un prompt a partir del código fuente de <code>services/pricing.js</code> y las reglas funcionales (A1) del README (umbral de envío 50/5, validación de cupón, reglas de descuento e impuesto, clases válidas/inválidas/límites). El prompt <strong>no mostró mutantes ni mencionó Stryker</strong>; solo pidió pruebas unitarias con Jest para <code>priceCheckout</code>. Ver <code>reports/prompt-ia.md</code>.</p>
+<h2>2. Variantes ejecutadas</h2>
+<p>Cada variante se ejecutó de forma aislada (solo su archivo de prueba activo) con la misma configuración de Stryker (<code>stryker.pricing.config.json</code>, mutando solo <code>services/pricing.js</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Variante</th>
+<th>Archivo de pruebas</th>
+<th>N.º pruebas</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Suite propia (analista)</td>
+<td><code>tests/services/pricing.test.js</code></td>
+<td>38</td>
+<td>Base del analista</td>
+</tr>
+<tr>
+<td>Modelo tal cual (IA)</td>
+<td><code>tests/ai-generated/pricing.ai-original.test.js</code></td>
+<td>15</td>
+<td>Sin editar, tal cual generó el modelo</td>
+</tr>
+<tr>
+<td>Modelo revisado (IA + analista)</td>
+<td><code>tests/ai-generated/pricing.ai-reviewed.test.js</code></td>
+<td>34</td>
+<td>Tras revisión del analista (oráculos fuertes, límites, aserciones de campos)</td>
+</tr>
+</tbody>
+</table>
+<h2>3. Resultados de Stryker (mutation score sobre <code>services/pricing.js</code>)</h2>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Suite propia</th>
+<th>IA tal cual</th>
+<th>IA revisada</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mutation score</td>
+<td><strong>90.34 %</strong></td>
+<td><strong>69.57 %</strong></td>
+<td><strong>91.79 %</strong></td>
+</tr>
+<tr>
+<td>Mutantes totales</td>
+<td>207</td>
+<td>207</td>
+<td>207</td>
+</tr>
+<tr>
+<td>Muertos</td>
+<td>186</td>
+<td>143</td>
+<td>189</td>
+</tr>
+<tr>
+<td>Sobrevivientes</td>
+<td>20</td>
+<td>53</td>
+<td>17</td>
+</tr>
+<tr>
+<td>Timeouts</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Sin cobertura</td>
+<td>0</td>
+<td>10</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Errores</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<h2>4. Tabla comparativa por dimensión</h2>
+<table>
+<thead>
+<tr>
+<th>Dimensión</th>
+<th>Suite propia</th>
+<th>IA tal cual</th>
+<th>IA revisada</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cobertura de ramas (mutados)</td>
+<td>Alta</td>
+<td>Media (10 mutantes sin cubrir)</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>Oráculos (aserciones de campos)</td>
+<td>Fuertes (subtotal, discount, taxable, tax, shipping, total, líneas, coupon.type)</td>
+<td>Débiles (solo total/subtotal en la mayoría)</td>
+<td>Fuertes</td>
+</tr>
+<tr>
+<td>Casos límite (value=1, minSubtotal=0, taxRate 0/1, string cupón/precio)</td>
+<td>Sí</td>
+<td>No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Validación de tipos no numéricos</td>
+<td>Sí</td>
+<td>No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Aserción de <code>coupon.type</code> (percent/fixed)</td>
+<td>Sí</td>
+<td>No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Mutantes de oráculo débil eliminados</td>
+<td>23 y 33 completos; 159 parcial (4 de 5); 93 ninguno (equivalentes)</td>
+<td>0 (ningún mutante de 23, 33 ni 159 muerto)</td>
+<td>23, 33 y 159 completos; 93 ninguno (equivalentes)</td>
+</tr>
+</tbody>
+</table>
+<h2>5. Mutantes concretos citados</h2>
+<ul>
+<li><strong>Línea 23:7</strong> (<code>typeof coupon !== 'object'</code> → <code>false</code>): IA tal cual no lo mata porque no prueba un cupón como string. Tanto suite propia como IA revisada sí lo matan (prueba <code>rechaza cupón como string</code>).</li>
+<li><strong>Línea 33:9</strong> (<code>coupon.value &gt; 1</code> → <code>&gt;= 1</code>): IA tal cual no testa el límite <code>value = 1</code>. Suite propia e IA revisada incluyen <code>acepta el valor límite value = 1</code> y lo matan.</li>
+<li><strong>Línea 93:9</strong> (<code>typeof item.unitPrice !== 'number'</code> → <code>false</code> o <code>&amp;&amp;</code>): sobrevive en las tres variantes. Son mutantes <strong>equivalentes</strong>: <code>Number.isFinite</code> ya rechaza cualquier no-número, así que el <code>typeof</code> es redundante. Una prueba con string es válida como caso de especificación, pero no puede matar estos mutantes sin cambiar el código. No cuenta como oráculo débil corregido.</li>
+<li><strong>Línea 159:7</strong> (<code>if (coupon.type === 'percent')</code> → <code>true</code>/<code>false</code>): IA tal cual no aserta <code>result.coupon.type</code> y sobreviven 4 de sus mutantes de esta línea. Suite propia mata 4 de 5 (aserta <code>percent</code>, pero no <code>fixed</code>; sobrevive <code>if (true)</code>, pendiente de corregir). IA revisada mata los 5, porque sí aserta <code>coupon.type === 'fixed'</code>.</li>
+</ul>
+<h2>6. Conclusiones del analista</h2>
+<ol>
+<li><strong>Las pruebas generadas por IA no son suficientes tal cual.</strong> El modelo produjo 15 pruebas con oráculos débiles (verifica solo totales, no campos intermedios ni el objeto cupón devuelto) y omitió casos límite relevantes (value=1, taxRate en bordes, cupón string), obteniendo un mutation score de solo 69.57 % y 10 mutantes sin cobertura.</li>
+<li><strong>Una revisión humana cierra la brecha.</strong> Tras añadir aserciones sobre campos (<code>coupon.type</code>, <code>taxable</code>, líneas de descuento), casos límite y validación de tipos, el score de la IA revisada sube a 91.79 %, ligeramente por encima de la suite propia (90.34 %).</li>
+<li><strong>Recomendación:</strong> usar IA como borrador inicial, pero siempre revisar y fortalecer oráculos y límites antes de aceptar las pruebas. La IA acelera la generación, pero no sustituye el juicio del analista en la selección de aserciones.</li>
+</ol>
+<h2>Registro de IA</h2>
+<table>
+<thead>
+<tr>
+<th>Fecha</th>
+<th>Modelo</th>
+<th>Prompt</th>
+<th>Pruebas generadas</th>
+<th>Pruebas revisadas</th>
+<th>Score IA tal cual</th>
+<th>Score IA revisada</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-11-25</td>
+<td>IA (este proceso)</td>
+<td><code>reports/prompt-ia.md</code></td>
+<td><code>tests/ai-generated/pricing.ai-original.test.js</code> (15 pruebas)</td>
+<td><code>tests/ai-generated/pricing.ai-reviewed.test.js</code> (34 pruebas)</td>
+<td>69.57 %</td>
+<td>91.79 %</td>
+</tr>
+</tbody>
+</table></section><section class="pagina" id="reports/triage-lint.md"><h1>Triage de hallazgos de lint — rama <code>task3-lint-triage-fuzz</code></h1>
+<p>Configuración: <code>eslint.config.mjs</code> (<code>@eslint/js</code> recommended), script <code>npm run lint</code> = <code>npx eslint models services routes</code>.</p>
+<h2>1. Evidencia de corrida en rojo</h2>
+<p>Commit de la corrida roja: segundo commit de la rama (<code>[TEST] Tarea 3: violaciones intencionales de lint</code>).
+Archivo: <code>reports/lint-red.txt</code></p>
+<pre><code>C:\Users\edgar\UTP\ecommerce-api\services\pricing.js
+  174:10  error  'dummyCompare' is defined but never used           no-unused-vars
+  185:7   error  'unusedVarOne' is assigned a value but never used  no-unused-vars
+  186:5   error  'unusedVarTwo' is assigned a value but never used  no-unused-vars
+  189:10  error  'nuncaInvocada' is defined but never used          no-unused-vars
+  190:10  error  'variableQueNoExiste' is not defined               no-undef
+
+✖ 5 problems (5 errors, 0 warnings)
+</code></pre>
+<p>Resultado: exit code 1. Se introdujeron <strong>5 violaciones de 2 reglas</strong> (<code>no-unused-vars</code> ×4, <code>no-undef</code> ×1), tal como exige la tarea (mínimo 4 de 2 reglas).</p>
+<p>Nota: se intentó también <code>eqeqeq</code> (comparaciones <code>==</code> en <code>dummyCompare</code>), pero la configuración <code>eslint:recommended</code> no incluye esa regla, por lo que no se reportó. Se documenta como límite de la configuración, no como hallazgo.</p>
+<h2>2. Evidencia de corrida limpia (commit final)</h2>
+<p>Commit final: tercer commit de la rama, <code>services/pricing.js</code> restaurado a la versión de <code>master</code>.
+Archivo: <code>reports/lint-clean.txt</code> (salida de <code>npm run lint</code>, exit code 0, sin errores):</p>
+<pre><code>&gt; ecommerce-app@1.0.0 lint
+&gt; npx eslint models services routes
+</code></pre>
+<h2>3. Clasificación de hallazgos (triage)</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Regla</th>
+<th>Ubicación</th>
+<th>Hallazgo</th>
+<th>Severidad</th>
+<th>Análisis y acción</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>no-undef</code></td>
+<td><code>services/pricing.js:190:10</code></td>
+<td><code>variableQueNoExiste</code> no definida</td>
+<td><strong>Alta (latente)</strong></td>
+<td>Referencia a un identificador inexistente. Hoy está dentro de <code>nuncaInvocada()</code>, así que no se ejecuta; si alguien llamara esa función lanzaría <code>ReferenceError</code> en tiempo de ejecución. Un linter es el único filtro que lo detecta, por eso el triage lo marca como prioridad.</td>
+<td>Corregido en commit final (eliminado)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>no-unused-vars</code></td>
+<td><code>services/pricing.js:189:10</code></td>
+<td><code>nuncaInvocada</code> definida y no usada</td>
+<td>Media</td>
+<td>Código muerto que además contiene el hallazgo 1. Eliminar la función completa.</td>
+<td>Corregido</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>no-unused-vars</code></td>
+<td><code>services/pricing.js:174:10</code></td>
+<td><code>dummyCompare</code> definida y no usada</td>
+<td>Baja</td>
+<td>Código muerto; contiene comparaciones <code>==</code> que no son parte de la especificación.</td>
+<td>Corregido</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>no-unused-vars</code></td>
+<td><code>services/pricing.js:185:7</code></td>
+<td><code>unusedVarOne</code> asignada y no usada</td>
+<td>Baja</td>
+<td>Variable sin uso. Eliminar.</td>
+<td>Corregido</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>no-unused-vars</code></td>
+<td><code>services/pricing.js:186:5</code></td>
+<td><code>unusedVarTwo</code> asignada y no usada</td>
+<td>Baja</td>
+<td>Variable sin uso (declarada con <code>let</code> sin reasignar). Eliminar.</td>
+<td>Corregido</td>
+</tr>
+</tbody>
+</table>
+<p>Criterio de severidad: un hallazgo es <strong>alto</strong> si puede causar un fallo en tiempo de ejecución en una ruta alcanzable; <strong>medio</strong> si es código muerto que oculta un defecto; <strong>bajo</strong> si solo afecta a la limpieza del código.</p>
+<p>Corrección: en el commit final se eliminó todo el bloque de violaciones, dejando <code>services/pricing.js</code> idéntico a <code>master</code>. Así el commit final pasa <code>npm run lint</code> sin errores.</p>
+<h2>4. Solicitud de fusión (sin fusionar)</h2>
+<ul>
+<li>Rama: <code>task3-lint-triage-fuzz</code> (creada desde <code>master</code>).</li>
+<li>Commits de la rama:
+  1. Entregables de las Tareas 1 y 2 (mutación e IA).
+  2. Violaciones intencionales de lint (corrida en rojo).
+  3. Lint limpio, prueba fuzz y triage.</li>
+<li>Pull request: <code>master ← task3-lint-triage-fuzz</code>. <strong>No se fusiona.</strong> Se deja abierto para revisión, porque la rama contiene el historial rojo a propósito y los reviewers deben ver el antes y el después.</li>
+<li>Estado del PR: ver sección "Estado de publicación" en <code>reports/entregables-calidad.md</code>.</li>
+</ul></section><section class="pagina" id="reports/prompt-ia.md"><h1>Prompt enviado al modelo de IA (generación de pruebas para pricing.js)</h1>
+<h2>Contexto</h2>
+<p>Eres un asistente experto en pruebas de software. El proyecto es una API de e-commerce (Express + Sequelize + SQLite). A continuación tienes el código fuente del servicio <code>services/pricing.js</code> y las reglas funcionales (A1) que deben cumplirse.</p>
+<h2>Código fuente bajo prueba (services/pricing.js)</h2>
+<pre><code class="language-javascript">const SHIPPING_THRESHOLD_CENTS = 5000;
+const SHIPPING_FEE_CENTS = 500;
+
+const SHIPPING_THRESHOLD = SHIPPING_THRESHOLD_CENTS / 100;
+const SHIPPING_FEE = SHIPPING_FEE_CENTS / 100;
+
+function fromCents(cents) {
+  return Number((cents / 100).toFixed(2));
+}
+
+function roundToInteger(value) {
+  return Math.round(Number(value.toFixed(8)));
+}
+
+function toCents(amount) {
+  return roundToInteger(amount * 100);
+}
+
+function assertCoupon(coupon) {
+  if (coupon == null) {
+    return;
+  }
+  if (typeof coupon !== 'object' || Array.isArray(coupon)) {
+    throw new Error('Only one coupon is allowed');
+  }
+  if (coupon.type !== 'percent' &amp;&amp; coupon.type !== 'fixed') {
+    throw new Error('Coupon type must be percent or fixed');
+  }
+  if (typeof coupon.value !== 'number' || !Number.isFinite(coupon.value) || coupon.value &lt;= 0) {
+    throw new Error('Coupon value must be greater than zero');
+  }
+  if (coupon.type === 'percent') {
+    if (coupon.value &gt; 1) {
+      throw new Error('Percent coupon cannot exceed 1');
+    }
+    if (typeof coupon.minSubtotal !== 'number' || !Number.isFinite(coupon.minSubtotal) || coupon.minSubtotal &lt; 0) {
+      throw new Error('Percent coupon requires a minimum subtotal');
+    }
+  }
+}
+
+function discountCentsFor(subtotalCents, coupon) {
+  assertCoupon(coupon);
+  if (coupon == null) {
+    return 0;
+  }
+  if (coupon.type === 'percent') {
+    const minCents = toCents(coupon.minSubtotal);
+    if (subtotalCents &lt; minCents) {
+      throw new Error('Coupon minimum not met');
+    }
+    return roundToInteger(subtotalCents * coupon.value);
+  }
+  const discountCents = toCents(coupon.value);
+  if (discountCents &gt; subtotalCents) {
+    throw new Error('Coupon exceeds subtotal');
+  }
+  return discountCents;
+}
+
+function allocateDiscount(lineSubtotals, discountCents) {
+  const shares = new Array(lineSubtotals.length).fill(0);
+  if (discountCents === 0) {
+    return shares;
+  }
+  const subtotalCents = lineSubtotals.reduce((sum, cents) =&gt; sum + cents, 0);
+  let allocated = 0;
+  for (let i = 0; i &lt; lineSubtotals.length; i += 1) {
+    if (i === lineSubtotals.length - 1) {
+      shares[i] = discountCents - allocated;
+    } else {
+      const proportional = roundToInteger(discountCents * (lineSubtotals[i] / subtotalCents));
+      const share = Math.min(proportional, discountCents - allocated);
+      shares[i] = share;
+      allocated += share;
+    }
+  }
+  return shares;
+}
+
+function priceCheckout(items, coupon) {
+  if (!Array.isArray(items) || items.length === 0) {
+    throw new Error('Cart is empty');
+  }
+  assertCoupon(coupon);
+
+  const lines = items.map((item) =&gt; {
+    if (!item || !Number.isInteger(item.quantity) || item.quantity &lt;= 0) {
+      throw new Error('Quantity must be a positive integer');
+    }
+    if (typeof item.unitPrice !== 'number' || !Number.isFinite(item.unitPrice) || item.unitPrice &lt; 0) {
+      throw new Error('Price must be zero or greater');
+    }
+    if (typeof item.taxRate !== 'number' || !Number.isFinite(item.taxRate) || item.taxRate &lt; 0 || item.taxRate &gt; 1) {
+      throw new Error('Tax rate must be between 0 and 1');
+    }
+
+    const unitPriceCents = toCents(item.unitPrice);
+    return {
+      productId: item.productId,
+      quantity: item.quantity,
+      unitPriceCents,
+      taxRate: item.taxRate,
+      lineSubtotalCents: unitPriceCents * item.quantity,
+    };
+  });
+
+  const subtotalCents = lines.reduce((sum, line) =&gt; sum + line.lineSubtotalCents, 0);
+  const discountCents = discountCentsFor(subtotalCents, coupon);
+  const shares = allocateDiscount(lines.map((line) =&gt; line.lineSubtotalCents), discountCents);
+
+  const pricedLines = lines.map((line, index) =&gt; {
+    const lineDiscountCents = shares[index];
+    const taxableCents = line.lineSubtotalCents - lineDiscountCents;
+    const lineTaxCents = roundToInteger(taxableCents * line.taxRate);
+    return {
+      productId: line.productId,
+      quantity: line.quantity,
+      unitPrice: fromCents(line.unitPriceCents),
+      taxRate: line.taxRate,
+      lineSubtotal: fromCents(line.lineSubtotalCents),
+      lineDiscount: fromCents(lineDiscountCents),
+      lineTax: fromCents(lineTaxCents),
+      lineSubtotalCents: line.lineSubtotalCents,
+      lineDiscountCents,
+      lineTaxCents,
+    };
+  });
+
+  const taxCents = pricedLines.reduce((sum, line) =&gt; sum + line.lineTaxCents, 0);
+  const taxableCents = subtotalCents - discountCents;
+  const shippingCents = taxableCents &gt;= SHIPPING_THRESHOLD_CENTS ? 0 : SHIPPING_FEE_CENTS;
+  const totalCents = taxableCents + taxCents + shippingCents;
+
+  return {
+    subtotal: fromCents(subtotalCents),
+    discount: fromCents(discountCents),
+    taxable: fromCents(taxableCents),
+    tax: fromCents(taxCents),
+    shipping: fromCents(shippingCents),
+    total: fromCents(totalCents),
+    subtotalCents,
+    discountCents,
+    taxableCents,
+    taxCents,
+    shippingCents,
+    totalCents,
+    lines: pricedLines,
+    coupon: interpretedCoupon(coupon, discountCents),
+  };
+}
+
+function interpretedCoupon(coupon, discountCents) {
+  if (coupon == null) {
+    return null;
+  }
+  if (coupon.type === 'percent') {
+    return {
+      type: 'percent',
+      value: coupon.value,
+      minSubtotal: fromCents(toCents(coupon.minSubtotal)),
+    };
+  }
+  return {
+    type: 'fixed',
+    value: fromCents(discountCents),
+  };
+}
+
+module.exports = {
+  SHIPPING_THRESHOLD,
+  SHIPPING_FEE,
+  priceCheckout,
+};
+</code></pre>
+<h2>Reglas funcionales (A1) del README (especificación vinculante)</h2>
+<ul>
+<li>Envío: umbral 50, tarifa 5. Si la base imponible (subtotal − descuento) &gt;= 50, envío 0; si &lt; 50, envío 5.</li>
+<li><code>priceCheckout(items, coupon)</code> es pura: no toca la base de datos. Cada ítem es <code>{ quantity, unitPrice, taxRate }</code>.</li>
+<li>Cupón opcional. Si <code>coupon</code> es un arreglo o no es objeto → rechazar ("Only one coupon is allowed").</li>
+<li><code>type</code>: <code>percent</code> o <code>fixed</code>. Otro valor → rechazar.</li>
+<li><code>value</code>: número &gt; 0. De lo contrario → rechazar.</li>
+<li><code>percent</code>: <code>value</code> fracción &gt; 0 y &lt;= 1. Exige <code>minSubtotal</code> &gt;= 0. Si subtotal &lt; minSubtotal → rechazar. Si == minSubtotal → aplica.</li>
+<li><code>fixed</code>: <code>value</code> monto &gt; 0. Se redondea al centavo y se compara con subtotal. Si supera → rechazar. Si == → base queda en 0. Un cupón <code>fixed</code> no consulta <code>minSubtotal</code>.</li>
+<li>No se acumulan cupones.</li>
+<li>Orden de cálculo:
+  1. Precio unitario redondeado al centavo.
+  2. Subtotal de línea = precio × cantidad. Subtotal del pedido = suma de líneas.
+  3. Descuento sobre el subtotal.
+  4. Descuento repartido en orden de líneas, proporcional al subtotal de cada una, redondeado al centavo, sin pasar del descuento pendiente. Última línea recibe el resto.
+  5. Impuesto de línea = (subtotal de línea − descuento de línea) × taxRate, redondeado al centavo. Impuesto = suma.
+  6. Base = subtotal − descuento. Si base &gt;= 50 → envío 0, si &lt; 50 → envío 5.
+  7. Total = base + impuesto + envío.</li>
+<li>Cantidad debe ser entero &gt; 0. Precio &gt;= 0. taxRate entre 0 y 1.</li>
+<li>Respuesta en unidades, no centavos. <code>priceCheckout</code> también devuelve enteros en centavos.</li>
+</ul>
+<h2>Instrucciones al modelo</h2>
+<p>Escribe pruebas unitarias con Jest para la función <code>priceCheckout</code> (y constantes expuestas si corresponde). Usa <code>require('../../services/pricing')</code>. Cubre clases válidas, inválidas y límites. No modifiques el código fuente. No menciones mutantes ni Stryker. Genera solo el archivo de prueba.</p></section></body></html>
