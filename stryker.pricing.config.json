@@ -1,19 +1,21 @@
 {
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
-  "_comment": "Configuración de Stryker enfocada en un único servicio: services/pricing.js",
   "packageManager": "npm",
   "reporters": [
     "html",
     "clear-text",
     "progress"
   ],
+  "htmlReporter": {
+    "fileName": "reports/stryker/suite-propia/mutation.html"
+  },
   "testRunner": "jest",
   "jest": {
-    "enableFindRelatedTests": true
+    "enableFindRelatedTests": true,
+    "configFile": "jest.stryker.suite-propia.config.js"
   },
   "coverageAnalysis": "perTest",
   "mutate": [
     "services/pricing.js"
-  ],
-  "testRunner_comment": "Pruebas de mutación sobre el servicio de precios (único servicio)."
+  ]
 }

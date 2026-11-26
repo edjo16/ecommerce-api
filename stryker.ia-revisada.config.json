@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "reporters": [
+    "html",
+    "clear-text",
+    "progress"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/stryker/ia-revisada/mutation.html"
+  },
+  "testRunner": "jest",
+  "jest": {
+    "enableFindRelatedTests": true,
+    "configFile": "jest.stryker.ia-revisada.config.js"
+  },
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "services/pricing.js"
+  ]
+}
