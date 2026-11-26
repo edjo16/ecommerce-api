@@ -32,32 +32,37 @@ function randFloat(min, max) {
 }
 
 function generateItem() {
-  const quantityChoices = [1, 2, 3, 5, 10, 0, -1, 2.5];
-  const unitPriceChoices = [0, 0.01, 10, 49.99, 50, 100, 250.75, 999.99, -5, '100', null];
-  const taxRateChoices = [0, 0.07, 0.16, 1, -0.1, 1.5, 0.5];
+  if (Math.random() < 0.85) {
+    return {
+      quantity: randInt(1, 10),
+      unitPrice: randFloat(0, 200),
+      taxRate: randPick([0, 0.07, 0.16, 0.5, 1]),
+    };
+  }
   return {
-    quantity: randPick(quantityChoices),
-    unitPrice: randPick(unitPriceChoices),
-    taxRate: randPick(taxRateChoices),
+    quantity: randPick([0, -1, 2.5]),
+    unitPrice: randPick([-5, '100', null]),
+    taxRate: randPick([-0.1, 1.5]),
   };
 }
 
 function generateCoupon() {
-  const couponChoices = [
-    null,
-    undefined,
-    { type: 'percent', value: randFloat(0.01, 1), minSubtotal: randFloat(0, 100) },
-    { type: 'percent', value: randFloat(1.01, 2), minSubtotal: 0 },
-    { type: 'percent', value: 1, minSubtotal: 0 },
-    { type: 'fixed', value: randFloat(0.01, 300) },
-    { type: 'fixed', value: 0 },
+  const roll = Math.random();
+  if (roll < 0.1) return null;
+  if (roll < 0.55) {
+    return { type: 'percent', value: randFloat(0.01, 1), minSubtotal: randFloat(0, 20) };
+  }
+  if (roll < 0.9) {
+    return { type: 'fixed', value: randFloat(0.01, 30) };
+  }
+  return randPick([
+    { type: 'percent', value: 1.5, minSubtotal: 0 },
     { type: 'fixed', value: -10 },
     { type: 'gift', value: 10 },
     [],
     'cupón-texto',
     { type: 'percent', value: 0.1, minSubtotal: -5 },
-  ];
-  return randPick(couponChoices);
+  ]);
 }
 
 function isValidItem(item) {
@@ -127,15 +132,32 @@ describe('priceCheckout — fuzz / propiedades', () => {
   });
 
   it(`ejecuta ${ITERACIONES} entradas aleatorias y verifica invariantes (oráculo)`, () => {
+    let entradasValidas = 0;
+    let entradasInvalidas = 0;
     for (let i = 0; i < ITERACIONES; i += 1) {
       const nItems = randInt(1, 4);
       const items = Array.from({ length: nItems }, generateItem);
       const coupon = generateCoupon();
       const itemsValidos = items.every(isValidItem);
       const cupónValido = couponValidForItems(coupon, items);
+      if (itemsValidos && cupónValido) {
+        entradasValidas += 1;
+      } else {
+        entradasInvalidas += 1;
+      }
 
       try {
         const result = priceCheckout(items, coupon);
+
+        if (!(itemsValidos && cupónValido)) {
+          fallos += 1;
+          detallesFallos.push({
+            iteracion: i,
+            items,
+            coupon,
+            motivo: 'aceptó una entrada inválida sin lanzar error',
+          });
+        }
 
         if (itemsValidos && cupónValido) {
           // Oráculo: total = taxable + tax + shipping
@@ -196,6 +218,8 @@ describe('priceCheckout — fuzz / propiedades', () => {
     if (fallos > 0) {
       console.error('FALLA FUZZ:', JSON.stringify(detallesFallos.slice(0, 5), null, 2));
     }
+    expect(entradasValidas).toBeGreaterThan(50);
+    expect(entradasInvalidas).toBeGreaterThan(50);
     expect(fallos).toBe(0);
   });
 
